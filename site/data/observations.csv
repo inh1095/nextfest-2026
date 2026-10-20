@@ -7,3 +7,5 @@ hela,demo_ccu,2026-10-20T07:08:26Z,159,ok,https://api.steampowered.com/ISteamUse
 lethal-wedding,demo_ccu,2026-10-20T07:08:29Z,0,ok,https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410,
 hela,demo_ccu,2026-10-20T07:20:36Z,167,ok,https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860,
 lethal-wedding,demo_ccu,2026-10-20T07:20:36Z,0,ok,https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410,
+hela,demo_ccu,2026-10-20T08:22:06Z,172,ok,https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860,
+lethal-wedding,demo_ccu,2026-10-20T08:22:07Z,0,ok,https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410,
