@@ -1,7 +1,7 @@
 {
   "schema_version": 1,
-  "generated_at": "2026-10-20T07:16:57Z",
-  "last_attempt_at": "2026-10-20T07:16:57Z",
+  "generated_at": "2026-10-20T07:20:36Z",
+  "last_attempt_at": "2026-10-20T07:20:36Z",
   "collection_status": "active",
   "archived_at": null,
   "samples": [
@@ -54,6 +54,24 @@
       "game_id": "lethal-wedding",
       "metric": "demo_ccu",
       "observed_at": "2026-10-20T07:08:29Z",
+      "value": 0,
+      "status": "ok",
+      "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+      "error_code": null
+    },
+    {
+      "game_id": "hela",
+      "metric": "demo_ccu",
+      "observed_at": "2026-10-20T07:20:36Z",
+      "value": 167,
+      "status": "ok",
+      "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+      "error_code": null
+    },
+    {
+      "game_id": "lethal-wedding",
+      "metric": "demo_ccu",
+      "observed_at": "2026-10-20T07:20:36Z",
       "value": 0,
       "status": "ok",
       "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
