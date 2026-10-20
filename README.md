@@ -1,12 +1,22 @@
-# Next Fest / October 2026
+# Next Fest Monitor · October 2026
 
-두 게임의 데모 동접과 공식 공지·영상 이력을 같은 시간축에서 확인하는 공개 관측 페이지입니다.
+두 게임의 데모 동접 변화와 공식 공지·영상 이력을 확인하는 공개 분석 도구입니다.
 
 - 대상: Hela: of Mice & Magic, Lethal Wedding
 - 행사: 2026-10-20 02:00 ~ 2026-10-27 02:00 KST
 - 최초 관측: 2026-10-20 15:59 KST. 그 이전 동접 이력은 확보하지 않았습니다.
 - 공개 데이터 저장: JSON 및 CSV. 서버 DB와 API 키를 사용하지 않습니다.
 - 호스팅: GitHub Pages. 사용자 컴퓨터가 꺼져 있어도 GitHub Actions가 실행됩니다.
+
+## 화면
+
+- 개요: 두 게임의 현황, 최근 관측 변화와 이벤트
+- 게임 비교: 같은 조회 기간의 수치와 관측 범위 비교
+- 지표 분석: 게임·기간별 차트, 증가 구간과 관련 근거, 원본 CSV
+- 이벤트 히스토리: 공지·영상 검색과 상세 내용
+- 수집 상태: 출처별 정상 수집·오류·미확보, 일정과 지표 정의
+
+각 메뉴는 별도 hash 주소를 사용합니다. 예를 들어 `#/analysis`로 바로 들어갈 수 있습니다. 상단 새로고침은 게시된 데이터를 다시 읽으며 수집기를 직접 실행하지 않습니다.
 
 ## 수집과 한계
 
@@ -30,8 +40,10 @@
 python3 -m unittest discover -s tests -v
 python3 scripts/validate.py
 node --check site/app.js
-python3 -m http.server 8765 --directory site
+python3 -m http.server 8765 --bind 127.0.0.1 --directory site
 ```
+
+로컬 서버 실행 후 다른 터미널에서 `python3 tests/browser_smoke.py`로 화면 이동, 필터, 분석 계산, 오류·누락과 모바일 화면을 검증할 수 있습니다. 브라우저 테스트의 가상 데이터는 메모리에서만 사용합니다.
 
 `python3 scripts/collect.py`는 현재 시각의 실제 공개 관측을 추가합니다. 운영 데이터로 테스트 수치를 만들지 않습니다.
 

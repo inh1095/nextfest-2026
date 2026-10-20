@@ -4,62 +4,40 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <meta name="theme-color" content="#171a18">
-  <meta name="description" content="Steam Next Fest 2026년 10월, 두 게임의 데모 동시접속자와 공식 공지·영상 기록을 살펴봅니다.">
-  <title>Next Fest Observatory · 2026.10</title>
+  <meta name="theme-color" content="#ffffff">
+  <meta name="description" content="Steam Next Fest 2026년 10월, 두 게임의 데모 동시접속자와 공식 공지·영상 기록을 분석합니다.">
+  <title>Next Fest Monitor</title>
   <link rel="icon" href="./favicon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="./styles.css">
-  <script src="./app.js" defer></script>
+  <link rel="stylesheet" href="./styles.css?v=20261020-monitor2">
+  <script src="./app.js?v=20261020-monitor2" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#dashboard">관측 데이터로 이동</a>
-  <header class="masthead">
-    <a class="wordmark" href="./" aria-label="Next Fest Observatory 홈"><span class="brand-icon" aria-hidden="true">↗</span><span>NEXT FEST<span class="brand-sub">OBSERVATORY</span></span></a>
-    <div class="edition">OCTOBER 2026<span>독립 게임 관측 기록</span></div>
-    <a class="top-link" href="#methodology">읽는 방법 <span aria-hidden="true">↘</span></a>
+  <a class="skip-link" href="#route-view">본문으로 이동</a>
+  <header class="topbar">
+    <button id="menu-toggle" class="icon-button mobile-menu" type="button" aria-label="메뉴 열기" aria-expanded="false" aria-controls="sidebar"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+    <a class="brand" href="#/overview"><span class="brand-symbol" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 16h4l3-9 4 12 3-7h4"/></svg></span>Next Fest <strong>Monitor</strong></a>
+    <div class="topbar-edition">Steam Next Fest <span>2026.10</span></div>
+    <div class="topbar-status"><span id="festival-status" class="badge">일정 확인 중</span><span id="header-freshness" class="header-freshness">데이터 확인 중</span></div>
+    <button id="refresh-data" class="button refresh-button" type="button" aria-label="JSON 데이터 새로고침"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M5.3 8a7 7 0 0 1 11.5-3L20 9M4 15l3.2 4A7 7 0 0 0 18.7 16"/></svg><span>새로고침</span></button>
   </header>
-  <main>
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <p class="eyebrow"><span class="tiny-line"></span> TWO GAMES. ONE FESTIVAL.</p>
-        <h1 id="hero-title">언제, 얼마나<br> <em>관심이 움직였을까.</em></h1>
-        <p class="hero-description">두 게임의 데모 플레이와 관심의 변화.<br>관측한 숫자와 그 무렵의 소식을 한 화면에 기록합니다.</p>
-      </div>
-      <aside class="festival-note" aria-label="페스티벌과 수집 상태">
-        <div class="note-heading"><span class="eyebrow">FESTIVAL FIELD NOTES</span><span class="note-star" aria-hidden="true">✳</span></div>
-        <h2>Steam Next Fest<span>2026년 10월</span></h2>
-        <p id="festival-dates" class="festival-dates">공식 일정 확인 중</p>
-        <div class="festival-status"><span id="event-status" class="status-label">일정 확인 중</span><span id="collection-status">데이터 확인 중</span></div>
-        <a id="festival-source" class="text-link" hidden target="_blank" rel="noopener noreferrer">공식 일정 확인 <span aria-hidden="true">↗</span></a>
-      </aside>
-    </section>
-    <section id="dashboard" class="dashboard" aria-label="게임 관측 대시보드">
-      <div class="section-heading"><div><span class="eyebrow">01 / THE WATCHLIST</span><h2>관측 중인 두 게임</h2></div><p>게임을 선택해 변화와 사건을 살펴보세요.</p></div>
-      <div id="game-cards" class="game-grid" aria-label="관측 게임 선택"></div>
-      <div id="loading-state" class="message-state" role="status">관측 기록을 불러오고 있습니다.</div>
-      <section id="detail-panel" hidden aria-labelledby="detail-title">
-        <div class="detail-heading"><div><p class="eyebrow">02 / THE OBSERVATIONS</p><h2 id="detail-title"></h2><p id="detail-description" class="muted"></p></div><div class="detail-links" id="detail-links"></div></div>
-        <div class="analysis-grid">
-          <section class="chart-panel" aria-label="지표 추이">
-            <div class="chart-toolbar"><div><h3>관심의 궤적</h3><p>동일한 시간축 · 지표별 독립 눈금 · KST</p></div><div class="range-switch" role="group" aria-label="관측 기간"><button type="button" data-range="all" aria-pressed="true">전체</button><button type="button" data-range="24" aria-pressed="false">24시간</button><button type="button" data-range="6" aria-pressed="false">6시간</button></div></div>
-            <div id="charts"></div>
-            <div class="chart-foot"><p id="chart-period"></p><button id="download-csv" class="text-button" type="button">관측 CSV <span aria-hidden="true">↓</span></button></div>
-            <details class="sample-details"><summary>관측 원자료 보기 <span id="sample-count"></span></summary><div class="table-wrap"><table><caption class="sr-only">선택 기간의 실제 수집 기록. 시간은 한국 표준시입니다.</caption><thead><tr><th scope="col">관측 시각 (KST)</th><th scope="col">지표</th><th scope="col">값</th><th scope="col">상태</th><th scope="col">출처</th></tr></thead><tbody id="sample-rows"></tbody></table></div></details>
-          </section>
-          <aside class="insight-panel" aria-labelledby="insight-title"><p class="eyebrow">READING THE CHANGE</p><h3 id="insight-title">숫자에서 읽는 변화</h3><div id="growth-insights"></div><div class="caution-note"><span aria-hidden="true">↳</span><p>같은 시기에 일어난 사건은 맥락입니다. 공개 데이터만으로 증가의 원인을 확정하지 않습니다.</p></div></aside>
-        </div>
-        <div id="data-notices" class="data-notices" aria-live="polite"></div>
-        <section class="events-section" aria-labelledby="events-title">
-          <div class="section-heading"><div><span class="eyebrow">03 / WHAT HAPPENED</span><h2 id="events-title">그 무렵, 어떤 일이 있었나</h2></div><p>발표·업데이트·영상의 공개 근거</p></div>
-          <p id="news-freshness" class="news-freshness"></p>
-          <div class="events-grid"><div id="event-list" class="event-list" aria-label="공개 사건 목록"></div><article id="event-detail" class="event-detail" aria-live="polite"></article></div>
-        </section>
-        <section class="source-strip" aria-labelledby="source-title"><div><p class="eyebrow">WHY THESE TWO</p><h3 id="source-title">선정 이유와 참가 근거</h3></div><div id="selection-evidence"></div></section>
-      </section>
-    </section>
-    <section id="methodology" class="methodology" aria-labelledby="method-title"><div class="method-intro"><p class="eyebrow">A NOTE ON THE NUMBERS</p><h2 id="method-title">숫자를 읽는 방법</h2><p>보이는 범위와 모르는 범위를<br>함께 남깁니다.</p></div><div class="method-grid"><article><span>01</span><h3>플레이와 관심은 별개입니다</h3><p>데모 동시접속자는 그 시각 데모를 실행 중인 사람 수입니다. 팔로워는 본편에 대한 관심 지표이며, 위시리스트나 구매 수가 아닙니다.</p></article><article><span>02</span><h3>기록은 첫 관측부터 시작합니다</h3><p>수집 이전의 과거값을 복원하지 않습니다. 최고치는 수집한 값 중 최고이며, 관측 사이의 실제 최고 동시접속자는 더 높을 수 있습니다.</p></article><article><span>03</span><h3>빈칸은 0이 아닙니다</h3><p>미확보·오류는 값 없음으로 표시합니다. 장시간 관측이 끊긴 구간은 선을 잇지 않습니다. 단일 관측으로 상승·하락을 판단하지 않습니다.</p></article><article><span>04</span><h3>사건과 변화는 구분합니다</h3><p>시간이 겹친다고 인과관계가 확인되는 것은 아닙니다. 날짜만 알려진 사건에는 임의의 시각을 부여하지 않습니다. 모든 시각은 KST입니다.</p></article></div></section>
+  <div id="sidebar-backdrop" class="sidebar-backdrop" hidden></div>
+  <aside id="sidebar" class="sidebar" aria-label="주 메뉴">
+    <div class="sidebar-heading"><span>페스티벌 모니터링</span><button id="menu-close" type="button" class="icon-button mobile-menu" aria-label="메뉴 닫기">×</button></div>
+    <nav aria-label="분석 메뉴">
+      <a href="#/overview" data-route="overview"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>개요</a>
+      <a href="#/compare" data-route="compare"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h5v10M15 20V4h5v16M2 20h20"/></svg>게임 비교</a>
+      <a href="#/analysis" data-route="analysis"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 3v18h18M6 15l5-6 4 3 6-7"/></svg>지표 분석</a>
+      <a href="#/events" data-route="events"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M8 3v4M16 3v4M4 11h16M8 15h3M8 18h7"/></svg>이벤트 히스토리</a>
+      <a href="#/collection" data-route="collection"><svg viewBox="0 0 24 24" aria-hidden="true"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v7c0 4 16 4 16 0V5M4 12v7c0 4 16 4 16 0v-7"/></svg>수집 상태</a>
+    </nav>
+    <div class="sidebar-footer"><span id="sidebar-collection" class="status-dot">기록 확인 중</span><p id="sidebar-interval">공개 데이터 모니터링</p><p>모든 시각은 KST</p></div>
+  </aside>
+  <main id="main-content" class="main-content">
+    <div id="refresh-status" class="inline-alert" role="status" hidden></div>
+    <div class="page-heading"><div><h1 id="page-title">개요</h1><p id="page-description">관측 기록을 불러오고 있습니다.</p></div><div id="page-actions" class="page-actions"></div></div>
+    <div id="route-view" data-page="loading" tabindex="-1"><div class="card loading-state" role="status">관측 데이터를 불러오고 있습니다.</div></div>
+    <footer class="app-footer"><span>독립 관측 프로젝트 · Steam / Valve 비공식</span><span id="footer-updated">확보된 공개 자료만 표시합니다.</span></footer>
   </main>
-  <footer><div class="footer-brand">NEXT FEST <span>OBSERVATORY</span><p>독립 관측 프로젝트 · Valve / Steam 비공식</p></div><div class="footer-freshness"><p id="freshness">데이터 확인 중</p><p id="collection-note">공개 출처를 기반으로 기록합니다.</p></div></footer>
-  <noscript><p class="noscript">이 대시보드에서 관측 기록을 읽으려면 JavaScript를 활성화해 주세요.</p></noscript>
+  <noscript><p class="noscript">관측 데이터를 확인하려면 JavaScript를 활성화해 주세요.</p></noscript>
 </body>
 </html>
