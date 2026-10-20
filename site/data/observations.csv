@@ -1,0 +1,7 @@
+game_id,metric,observed_at,value,status,source_url,error_code
+hela,demo_ccu,2026-10-20T06:59:20Z,159,ok,https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860,
+hela,followers,2026-10-20T06:59:20Z,,unavailable,https://steamcommunity.com/games/3161310/memberslistxml/?xml=1,source_unverified
+lethal-wedding,demo_ccu,2026-10-20T06:59:21Z,0,ok,https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410,
+lethal-wedding,followers,2026-10-20T06:59:21Z,,unavailable,https://steamcommunity.com/games/4624120/memberslistxml/?xml=1,source_unverified
+hela,demo_ccu,2026-10-20T07:08:26Z,159,ok,https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860,
+lethal-wedding,demo_ccu,2026-10-20T07:08:29Z,0,ok,https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410,

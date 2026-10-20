@@ -1,0 +1,309 @@
+{
+  "schema_version": 1,
+  "generated_at": "2026-10-20T07:08:29Z",
+  "last_attempt_at": "2026-10-20T07:08:26Z",
+  "collection_status": "active",
+  "archived_at": null,
+  "samples": [
+    {
+      "game_id": "hela",
+      "metric": "demo_ccu",
+      "observed_at": "2026-10-20T06:59:20Z",
+      "value": 159,
+      "status": "ok",
+      "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+      "error_code": null
+    },
+    {
+      "game_id": "hela",
+      "metric": "followers",
+      "observed_at": "2026-10-20T06:59:20Z",
+      "value": null,
+      "status": "unavailable",
+      "source_url": "https://steamcommunity.com/games/3161310/memberslistxml/?xml=1",
+      "error_code": "source_unverified"
+    },
+    {
+      "game_id": "lethal-wedding",
+      "metric": "demo_ccu",
+      "observed_at": "2026-10-20T06:59:21Z",
+      "value": 0,
+      "status": "ok",
+      "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+      "error_code": null
+    },
+    {
+      "game_id": "lethal-wedding",
+      "metric": "followers",
+      "observed_at": "2026-10-20T06:59:21Z",
+      "value": null,
+      "status": "unavailable",
+      "source_url": "https://steamcommunity.com/games/4624120/memberslistxml/?xml=1",
+      "error_code": "source_unverified"
+    },
+    {
+      "game_id": "hela",
+      "metric": "demo_ccu",
+      "observed_at": "2026-10-20T07:08:26Z",
+      "value": 159,
+      "status": "ok",
+      "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+      "error_code": null
+    },
+    {
+      "game_id": "lethal-wedding",
+      "metric": "demo_ccu",
+      "observed_at": "2026-10-20T07:08:29Z",
+      "value": 0,
+      "status": "ok",
+      "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+      "error_code": null
+    }
+  ],
+  "events": [
+    {
+      "id": "steam-lethal-wedding-1846651706692897",
+      "game_id": "lethal-wedding",
+      "kind": "announcement",
+      "title": "Steam Next Fest is Live!",
+      "summary": "Next Fest 개막과 데모 제공을 알렸다. 현재 Steam 데모는 초기 빌드로 일부 유혈 효과와 개발 중 조정사항이 아직 포함되지 않았으며 피드백을 요청했다.",
+      "occurred_at": null,
+      "published_at": "2026-10-19T22:02:44Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/674008896091719773",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    },
+    {
+      "id": "steam-hela-1846651706691546",
+      "game_id": "hela",
+      "kind": "announcement",
+      "title": "Hela Is at Steam Next Fest!",
+      "summary": "2026년 10월 Steam Next Fest 참가를 알리고 데모의 싱글·로컬 협동, Steam Deck 지원과 개발사 플레이 영상을 소개했다.",
+      "occurred_at": null,
+      "published_at": "2026-10-19T17:05:02Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/686393795070133800",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    },
+    {
+      "id": "steam-hela-1846651706679004",
+      "game_id": "hela",
+      "kind": "announcement",
+      "title": "Hela: of Mice & Magic – Demo Trailer Revealed at IGN Fan Fest!",
+      "summary": "IGN Fan Fest에서 데모 트레일러를 공개했다. 독립된 데모 이야기와 로컬 협동, 10월 19~26일 Next Fest 참가를 안내했다.",
+      "occurred_at": null,
+      "published_at": "2026-10-15T19:04:43Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/686393795070132931",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    },
+    {
+      "id": "youtube-NPGPygAh8pE",
+      "game_id": "hela",
+      "kind": "video",
+      "title": "Hela: Of Mice & Magic | Demo Trailer",
+      "summary": "Hela: of Mice & Magic by Windup Games의 공식 영상. 개발사 공지에 연결된 자료이며, 조회수 변화나 유입 효과는 확보하지 않았습니다.",
+      "occurred_at": "2026-10-15T18:56:30Z",
+      "published_at": "2026-10-15T18:56:30Z",
+      "time_precision": "minute",
+      "source_url": "https://www.youtube.com/watch?v=NPGPygAh8pE",
+      "verified_at": "2026-10-20T06:59:59Z",
+      "discovery_method": "official_announcement_video",
+      "content_review": "source_verified",
+      "relationship_source_url": "https://steamcommunity.com/games/3161310/announcements/detail/686393795070132931"
+    },
+    {
+      "id": "steam-lethal-wedding-1846018067945090",
+      "game_id": "lethal-wedding",
+      "kind": "announcement",
+      "title": "Lethal Wedding is Heading to Steam Next Fest + Dev Progress!",
+      "summary": "10월 19일 Next Fest 참가를 예고하고 보스 음악, 맵 충돌 수정, 화면 찢어짐 최적화와 플레이테스트 진행 상황을 공유했다.",
+      "occurred_at": null,
+      "published_at": "2026-10-13T19:06:07Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/690896761055612191",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    },
+    {
+      "id": "steam-hela-1846018067930602",
+      "game_id": "hela",
+      "kind": "announcement",
+      "title": "Hela Unveils a Brand-New Trailer at Triple-i",
+      "summary": "Triple-i에서 신규 트레일러와 Steam 데모 출시를 발표하고 PAX Aus·Paris Games Week·IGN Fan Fest 일정을 안내했다.",
+      "occurred_at": null,
+      "published_at": "2026-10-08T17:00:17Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/688644961237731100",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    },
+    {
+      "id": "youtube-bgfvuJl-PPQ",
+      "game_id": "hela",
+      "kind": "video",
+      "title": "Hela: of Mice and Magic - Adventure Trailer | The Triple-i Initiative",
+      "summary": "Hela: of Mice & Magic by Windup Games의 공식 영상. 개발사 공지에 연결된 자료이며, 조회수 변화나 유입 효과는 확보하지 않았습니다.",
+      "occurred_at": "2026-10-08T17:00:09Z",
+      "published_at": "2026-10-08T17:00:09Z",
+      "time_precision": "minute",
+      "source_url": "https://www.youtube.com/watch?v=bgfvuJl-PPQ",
+      "verified_at": "2026-10-20T06:59:59Z",
+      "discovery_method": "official_announcement_video",
+      "content_review": "source_verified",
+      "relationship_source_url": "https://steamcommunity.com/games/3161310/announcements/detail/688644961237731100"
+    },
+    {
+      "id": "steam-hela-1845383656381631",
+      "game_id": "hela",
+      "kind": "announcement",
+      "title": "Hela is scurrying into IGN Fan Fest 2026! 🐭✨",
+      "summary": "10월 14일 IGN Fan Fest 2026 가을 행사 참가와 신규 트레일러 공개를 예고했다.",
+      "occurred_at": null,
+      "published_at": "2026-10-01T14:51:00Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/688644326827229538",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    },
+    {
+      "id": "steam-hela-1844751498221596",
+      "game_id": "hela",
+      "kind": "announcement",
+      "title": "Brewing a Little Magic in Hela: Of Mice & Magic",
+      "summary": "재료 채집과 직접 조작하는 양조 시스템을 소개하고 12월 1일 출시 및 10월 8일 Triple-i 출연을 안내했다.",
+      "occurred_at": null,
+      "published_at": "2026-09-24T14:00:15Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/672881095979566390",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    },
+    {
+      "id": "steam-lethal-wedding-1842846814456144",
+      "game_id": "lethal-wedding",
+      "kind": "announcement",
+      "title": "Steam Demo is LIVE NOW + Genesis ROM & Dev Progress",
+      "summary": "Steam 데모와 Genesis/Mega Drive ROM 데모를 공개하고 후원자 테스트, 보스 연출 및 맵·난이도 개선을 소개했다.",
+      "occurred_at": null,
+      "published_at": "2026-09-08T16:07:51Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/695397189431593330",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    },
+    {
+      "id": "youtube-e7vk4IplJjo",
+      "game_id": "lethal-wedding",
+      "kind": "video",
+      "title": "Lethal Wedding Demo Official Trailer | Wishlist Now on Steam!",
+      "summary": "Mega Cat Studios의 공식 영상. 개발사 공지에 연결된 자료이며, 조회수 변화나 유입 효과는 확보하지 않았습니다.",
+      "occurred_at": "2026-09-08T16:04:33Z",
+      "published_at": "2026-09-08T16:04:33Z",
+      "time_precision": "minute",
+      "source_url": "https://www.youtube.com/watch?v=e7vk4IplJjo",
+      "verified_at": "2026-10-20T06:59:59Z",
+      "discovery_method": "official_announcement_video",
+      "content_review": "source_verified",
+      "relationship_source_url": "https://steamcommunity.com/games/4624120/announcements/detail/695397189431593330"
+    },
+    {
+      "id": "steam-lethal-wedding-1840944183789498",
+      "game_id": "lethal-wedding",
+      "kind": "announcement",
+      "title": "Lethal Wedding Live at Pixel Arcadia 2026!",
+      "summary": "8월 24일 Pixel Arcadia Showcase 참가와 시청 채널을 안내했다.",
+      "occurred_at": null,
+      "published_at": "2026-08-18T17:39:38Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/695395286786248046",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    },
+    {
+      "id": "steam-lethal-wedding-1840310314352171",
+      "game_id": "lethal-wedding",
+      "kind": "announcement",
+      "title": "Want to Playtest Lethal Wedding? Playtest Applications Now Open! ",
+      "summary": "후원자 우선 비공개 플레이테스트를 모집했다. 비동기 설문 또는 실시간 세션 방식과 NDA 등 참가 조건을 안내했다.",
+      "occurred_at": null,
+      "published_at": "2026-08-10T17:27:45Z",
+      "time_precision": "minute",
+      "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/679632054236743055",
+      "verified_at": "2026-10-20T07:01:09Z",
+      "discovery_method": "verified_official_steam_news",
+      "content_review": "source_verified"
+    }
+  ],
+  "analyses": [
+    {
+      "game_id": "hela",
+      "from": "2026-10-20T06:59:20Z",
+      "to": "2026-10-20T06:59:20Z",
+      "observation": "최초 단일 관측에서 데모 동접 159명이 확인되었습니다. 비교 관측이 없어 변화량·증가 구간·행사 효과는 판단할 수 없습니다.",
+      "hypothesis": null,
+      "alternative_explanations": [
+        "시간대와 자연스러운 접속 변동 등 다른 요인의 영향을 분리할 관측 이력이 없습니다."
+      ],
+      "evidence_event_ids": [
+        "steam-hela-1846651706691546"
+      ],
+      "evidence_sample_times": [
+        "2026-10-20T06:59:20Z"
+      ],
+      "assessment": "insufficient",
+      "reviewed_at": "2026-10-20T07:07:13Z"
+    },
+    {
+      "game_id": "lethal-wedding",
+      "from": "2026-10-20T06:59:21Z",
+      "to": "2026-10-20T06:59:21Z",
+      "observation": "최초 단일 관측에서 데모 동접 0명이 확인되었습니다. 비교 관측이 없어 변화량·증가 구간·행사 효과는 판단할 수 없습니다. 이 0은 정상 API 응답이며 미확보 값이 아닙니다. 단일 순간값으로 흥행 실패를 판단할 수 없습니다.",
+      "hypothesis": null,
+      "alternative_explanations": [
+        "시간대와 자연스러운 접속 변동 등 다른 요인의 영향을 분리할 관측 이력이 없습니다."
+      ],
+      "evidence_event_ids": [
+        "steam-lethal-wedding-1846651706692897"
+      ],
+      "evidence_sample_times": [
+        "2026-10-20T06:59:21Z"
+      ],
+      "assessment": "insufficient",
+      "reviewed_at": "2026-10-20T07:07:13Z"
+    }
+  ],
+  "news_last_attempt_at": {
+    "hela": "2026-10-20T07:01:09Z",
+    "lethal-wedding": "2026-10-20T07:01:09Z"
+  },
+  "news_status": {
+    "hela": {
+      "last_attempt_at": "2026-10-20T07:01:09Z",
+      "status": "ok",
+      "error_codes": []
+    },
+    "lethal-wedding": {
+      "last_attempt_at": "2026-10-20T07:01:09Z",
+      "status": "ok",
+      "error_codes": []
+    }
+  },
+  "notices": [
+    "팔로워·위시리스트는 미확보이며 동접으로 환산하지 않습니다.",
+    "처음 확보한 영상 3개를 표시합니다. 영상 전수 검색·조회수 추적은 수집 범위에 포함하지 않습니다.",
+    "공식 공지는 게시 시각을 표시합니다. 예고한 행사 자체의 발생 시각과 다를 수 있습니다."
+  ]
+}

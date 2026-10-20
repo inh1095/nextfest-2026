@@ -1,0 +1,380 @@
+{
+  "schema_version": 1,
+  "collected_at": "2026-10-20T07:01:09.106779+00:00",
+  "observed_timezone": "UTC",
+  "clock_check": {
+    "tool_utc": "2026-10-20T06:58:30Z",
+    "os_utc": "2026-10-20T06:58:30Z",
+    "difference_detected": false
+  },
+  "event": {
+    "id": "steam-next-fest-2026-10",
+    "name": "Steam Next Fest: October 2026",
+    "starts_at": "2026-10-19T17:00:00Z",
+    "ends_at": "2026-10-26T17:00:00Z",
+    "source_url": "https://partner.steamgames.com/doc/marketing/upcoming_events/nextfest/2026october"
+  },
+  "collection_scope": "Two explicitly verified participating games only; official Steam and YouTube sources; no SteamDB requests.",
+  "games": [
+    {
+      "id": "hela",
+      "name": "Hela: of Mice & Magic",
+      "base_appid": 3161310,
+      "demo_appid": 4553860,
+      "demo_name": "Hela: Of Mice & Magic Demo",
+      "store_url": "https://store.steampowered.com/app/3161310/",
+      "demo_url": "https://store.steampowered.com/app/4553860/",
+      "header_image": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/3161310/868b1938e4540924707c8db978d494322757e28d/header.jpg?t=1792414639",
+      "developers": [
+        "Windup"
+      ],
+      "publishers": [
+        "Knights Peak",
+        "Boltray Games (China)",
+        " Shochiku"
+      ],
+      "genres": [
+        {
+          "id": "25",
+          "description": "Adventure"
+        }
+      ],
+      "release_date": {
+        "coming_soon": true,
+        "date": "1 Dec, 2026"
+      },
+      "appid_mapping": {
+        "status": "verified_bidirectionally",
+        "base_appdetails_url": "https://store.steampowered.com/api/appdetails?appids=3161310&l=english",
+        "demo_appdetails_url": "https://store.steampowered.com/api/appdetails?appids=4553860&l=english",
+        "base_demos_contains_demo": true,
+        "demo_fullgame_appid": 3161310
+      },
+      "participation": {
+        "status": "verified",
+        "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/686393795070133800",
+        "source_published_at": "2026-10-19T17:05:02+00:00",
+        "evidence_summary_ko": "2026년 10월 Steam Next Fest 참가를 알리고 데모의 싱글·로컬 협동, Steam Deck 지원과 개발사 플레이 영상을 소개했다."
+      },
+      "metrics": {
+        "demo_ccu": {
+          "value": 159,
+          "status": "available",
+          "observed_at": "2026-10-20T06:59:20.487355+00:00",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+          "http_status": 200,
+          "raw_response": {
+            "response": {
+              "player_count": 159,
+              "result": 1
+            }
+          },
+          "coverage": "Current Steam-connected players for the demo AppID; not unique players or historical peak."
+        },
+        "base_ccu": {
+          "value": null,
+          "status": "unavailable",
+          "reason": "Official API returned HTTP 404 and result 42; this is not a zero-player observation.",
+          "observed_at": "2026-10-20T06:59:20.227871+00:00",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=3161310",
+          "http_status": 404,
+          "raw_response": {
+            "response": {
+              "result": 42
+            }
+          }
+        },
+        "followers": {
+          "value": null,
+          "status": "inconsistent_source",
+          "reason_ko": "공개 Steam Community XML의 두 memberCount 값이 불일치하여 확정 Followers 지표로 채택하지 않았다.",
+          "source_url": "https://steamcommunity.com/games/3161310/memberslistxml/?xml=1",
+          "observed_at": "2026-10-20T06:59:20.951325+00:00",
+          "raw_member_count": 40817,
+          "raw_group_details_member_count": 38120,
+          "group_id64": "103582791474680173",
+          "official_semantics_url": "https://partner.steamgames.com/doc/marketing/followers",
+          "source_stability": "Public XML endpoint observed HTTP 200, but not a documented supported Web API contract."
+        },
+        "wishlists": {
+          "value": null,
+          "status": "unavailable",
+          "reason_ko": "외부 관측자가 사용할 수 있는 공개 절대 Wishlist 수치를 확인하지 못했다."
+        }
+      },
+      "announcements": [
+        {
+          "id": "1846651706691546",
+          "title": "Hela Is at Steam Next Fest!",
+          "published_at": "2026-10-19T17:05:02+00:00",
+          "summary_ko": "2026년 10월 Steam Next Fest 참가를 알리고 데모의 싱글·로컬 협동, Steam Deck 지원과 개발사 플레이 영상을 소개했다.",
+          "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/686393795070133800",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=3161310&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        },
+        {
+          "id": "1846651706679004",
+          "title": "Hela: of Mice & Magic – Demo Trailer Revealed at IGN Fan Fest!",
+          "published_at": "2026-10-15T19:04:43+00:00",
+          "summary_ko": "IGN Fan Fest에서 데모 트레일러를 공개했다. 독립된 데모 이야기와 로컬 협동, 10월 19~26일 Next Fest 참가를 안내했다.",
+          "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/686393795070132931",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=3161310&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        },
+        {
+          "id": "1846018067930602",
+          "title": "Hela Unveils a Brand-New Trailer at Triple-i",
+          "published_at": "2026-10-08T17:00:17+00:00",
+          "summary_ko": "Triple-i에서 신규 트레일러와 Steam 데모 출시를 발표하고 PAX Aus·Paris Games Week·IGN Fan Fest 일정을 안내했다.",
+          "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/688644961237731100",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=3161310&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        },
+        {
+          "id": "1845383656381631",
+          "title": "Hela is scurrying into IGN Fan Fest 2026! 🐭✨",
+          "published_at": "2026-10-01T14:51:00+00:00",
+          "summary_ko": "10월 14일 IGN Fan Fest 2026 가을 행사 참가와 신규 트레일러 공개를 예고했다.",
+          "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/688644326827229538",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=3161310&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        },
+        {
+          "id": "1844751498221596",
+          "title": "Brewing a Little Magic in Hela: Of Mice & Magic",
+          "published_at": "2026-09-24T14:00:15+00:00",
+          "summary_ko": "재료 채집과 직접 조작하는 양조 시스템을 소개하고 12월 1일 출시 및 10월 8일 Triple-i 출연을 안내했다.",
+          "source_url": "https://steamcommunity.com/games/3161310/announcements/detail/672881095979566390",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=3161310&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        }
+      ],
+      "youtube_videos": [
+        {
+          "video_id": "NPGPygAh8pE",
+          "url": "https://www.youtube.com/watch?v=NPGPygAh8pE",
+          "observed_at": "2026-10-20T06:59:59.765030+00:00",
+          "oembed_status": 200,
+          "title": "Hela: Of Mice & Magic | Demo Trailer",
+          "author_name": "Hela: of Mice & Magic by Windup Games",
+          "author_url": "https://www.youtube.com/@WindupGames_SE",
+          "thumbnail_url": "https://i.ytimg.com/vi/NPGPygAh8pE/hqdefault.jpg",
+          "watch_http_status": 200,
+          "datePublished": null,
+          "uploadDate": "2026-10-15T11:56:30-07:00",
+          "publishDate": "2026-10-15T11:56:30-07:00",
+          "page_meta_dates": [
+            "2026-10-15T11:56:30-07:00",
+            "2026-10-15T11:56:30-07:00"
+          ],
+          "published_at": "2026-10-15T18:56:30+00:00",
+          "published_at_source": "YouTube watch-page microformat publishDate and uploadDate; not inferred from Steam announcement date.",
+          "relationship": "Embedded by the developer in an official Steam announcement",
+          "relationship_source_url": "https://steamcommunity.com/games/3161310/announcements/detail/686393795070132931",
+          "statistics_status": "not_collected",
+          "oembed_source_url": "https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DNPGPygAh8pE&format=json"
+        },
+        {
+          "video_id": "bgfvuJl-PPQ",
+          "url": "https://www.youtube.com/watch?v=bgfvuJl-PPQ",
+          "observed_at": "2026-10-20T06:59:59.767403+00:00",
+          "oembed_status": 200,
+          "title": "Hela: of Mice and Magic - Adventure Trailer | The Triple-i Initiative",
+          "author_name": "Hela: of Mice & Magic by Windup Games",
+          "author_url": "https://www.youtube.com/@WindupGames_SE",
+          "thumbnail_url": "https://i.ytimg.com/vi/bgfvuJl-PPQ/hqdefault.jpg",
+          "watch_http_status": 200,
+          "datePublished": null,
+          "uploadDate": "2026-10-08T10:00:09-07:00",
+          "publishDate": "2026-10-08T10:00:09-07:00",
+          "page_meta_dates": [
+            "2026-10-08T10:00:09-07:00",
+            "2026-10-08T10:00:09-07:00"
+          ],
+          "published_at": "2026-10-08T17:00:09+00:00",
+          "published_at_source": "YouTube watch-page microformat publishDate and uploadDate; not inferred from Steam announcement date.",
+          "relationship": "Embedded by the developer in an official Steam announcement",
+          "relationship_source_url": "https://steamcommunity.com/games/3161310/announcements/detail/688644961237731100",
+          "statistics_status": "not_collected",
+          "oembed_source_url": "https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3DbgfvuJl-PPQ&format=json"
+        }
+      ]
+    },
+    {
+      "id": "lethal-wedding",
+      "name": "Lethal Wedding",
+      "base_appid": 4624120,
+      "demo_appid": 4768410,
+      "demo_name": "Lethal Wedding Demo",
+      "store_url": "https://store.steampowered.com/app/4624120/",
+      "demo_url": "https://store.steampowered.com/app/4768410/",
+      "header_image": "https://shared.akamai.steamstatic.com/store_item_assets/steam/apps/4624120/a786185bd92c3feb24aec143fa7d350b8ec25242/header.jpg?t=1780510138",
+      "developers": [
+        "Mega Cat Studios"
+      ],
+      "publishers": [
+        "8 Bit Legit"
+      ],
+      "genres": [
+        {
+          "id": "1",
+          "description": "Action"
+        },
+        {
+          "id": "25",
+          "description": "Adventure"
+        },
+        {
+          "id": "23",
+          "description": "Indie"
+        }
+      ],
+      "release_date": {
+        "coming_soon": true,
+        "date": "To be announced"
+      },
+      "appid_mapping": {
+        "status": "verified_bidirectionally",
+        "base_appdetails_url": "https://store.steampowered.com/api/appdetails?appids=4624120&l=english",
+        "demo_appdetails_url": "https://store.steampowered.com/api/appdetails?appids=4768410&l=english",
+        "base_demos_contains_demo": true,
+        "demo_fullgame_appid": 4624120
+      },
+      "participation": {
+        "status": "verified",
+        "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/674008896091719773",
+        "source_published_at": "2026-10-19T22:02:44+00:00",
+        "evidence_summary_ko": "Next Fest 개막과 데모 제공을 알렸다. 현재 Steam 데모는 초기 빌드로 일부 유혈 효과와 개발 중 조정사항이 아직 포함되지 않았으며 피드백을 요청했다."
+      },
+      "metrics": {
+        "demo_ccu": {
+          "value": 0,
+          "status": "available",
+          "observed_at": "2026-10-20T06:59:21.657772+00:00",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+          "http_status": 200,
+          "raw_response": {
+            "response": {
+              "player_count": 0,
+              "result": 1
+            }
+          },
+          "coverage": "Current Steam-connected players for the demo AppID; not unique players or historical peak."
+        },
+        "base_ccu": {
+          "value": null,
+          "status": "unavailable",
+          "reason": "Official API returned HTTP 404 and result 42; this is not a zero-player observation.",
+          "observed_at": "2026-10-20T06:59:21.380577+00:00",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4624120",
+          "http_status": 404,
+          "raw_response": {
+            "response": {
+              "result": 42
+            }
+          }
+        },
+        "followers": {
+          "value": null,
+          "status": "inconsistent_source",
+          "reason_ko": "공개 Steam Community XML의 두 memberCount 값이 불일치하여 확정 Followers 지표로 채택하지 않았다.",
+          "source_url": "https://steamcommunity.com/games/4624120/memberslistxml/?xml=1",
+          "observed_at": "2026-10-20T06:59:21.877585+00:00",
+          "raw_member_count": 111,
+          "raw_group_details_member_count": 107,
+          "group_id64": "103582791475653959",
+          "official_semantics_url": "https://partner.steamgames.com/doc/marketing/followers",
+          "source_stability": "Public XML endpoint observed HTTP 200, but not a documented supported Web API contract."
+        },
+        "wishlists": {
+          "value": null,
+          "status": "unavailable",
+          "reason_ko": "외부 관측자가 사용할 수 있는 공개 절대 Wishlist 수치를 확인하지 못했다."
+        }
+      },
+      "announcements": [
+        {
+          "id": "1846651706692897",
+          "title": "Steam Next Fest is Live!",
+          "published_at": "2026-10-19T22:02:44+00:00",
+          "summary_ko": "Next Fest 개막과 데모 제공을 알렸다. 현재 Steam 데모는 초기 빌드로 일부 유혈 효과와 개발 중 조정사항이 아직 포함되지 않았으며 피드백을 요청했다.",
+          "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/674008896091719773",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=4624120&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        },
+        {
+          "id": "1846018067945090",
+          "title": "Lethal Wedding is Heading to Steam Next Fest + Dev Progress!",
+          "published_at": "2026-10-13T19:06:07+00:00",
+          "summary_ko": "10월 19일 Next Fest 참가를 예고하고 보스 음악, 맵 충돌 수정, 화면 찢어짐 최적화와 플레이테스트 진행 상황을 공유했다.",
+          "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/690896761055612191",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=4624120&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        },
+        {
+          "id": "1842846814456144",
+          "title": "Steam Demo is LIVE NOW + Genesis ROM & Dev Progress",
+          "published_at": "2026-09-08T16:07:51+00:00",
+          "summary_ko": "Steam 데모와 Genesis/Mega Drive ROM 데모를 공개하고 후원자 테스트, 보스 연출 및 맵·난이도 개선을 소개했다.",
+          "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/695397189431593330",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=4624120&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        },
+        {
+          "id": "1840944183789498",
+          "title": "Lethal Wedding Live at Pixel Arcadia 2026!",
+          "published_at": "2026-08-18T17:39:38+00:00",
+          "summary_ko": "8월 24일 Pixel Arcadia Showcase 참가와 시청 채널을 안내했다.",
+          "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/695395286786248046",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=4624120&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        },
+        {
+          "id": "1840310314352171",
+          "title": "Want to Playtest Lethal Wedding? Playtest Applications Now Open! ",
+          "published_at": "2026-08-10T17:27:45+00:00",
+          "summary_ko": "후원자 우선 비공개 플레이테스트를 모집했다. 비동기 설문 또는 실시간 세션 방식과 NDA 등 참가 조건을 안내했다.",
+          "source_url": "https://steamcommunity.com/games/4624120/announcements/detail/679632054236743055",
+          "api_source_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=4624120&count=5&maxlength=0&feeds=steam_community_announcements",
+          "source_http_status": 200,
+          "feedname": "steam_community_announcements"
+        }
+      ],
+      "youtube_videos": [
+        {
+          "video_id": "e7vk4IplJjo",
+          "url": "https://www.youtube.com/watch?v=e7vk4IplJjo",
+          "observed_at": "2026-10-20T06:59:59.768369+00:00",
+          "oembed_status": 200,
+          "title": "Lethal Wedding Demo Official Trailer | Wishlist Now on Steam!",
+          "author_name": "Mega Cat Studios",
+          "author_url": "https://www.youtube.com/@megacatstudios",
+          "thumbnail_url": "https://i.ytimg.com/vi/e7vk4IplJjo/hqdefault.jpg",
+          "watch_http_status": 200,
+          "datePublished": null,
+          "uploadDate": "2026-09-08T09:04:33-07:00",
+          "publishDate": "2026-09-08T09:04:33-07:00",
+          "page_meta_dates": [
+            "2026-09-08T09:04:33-07:00",
+            "2026-09-08T09:04:33-07:00"
+          ],
+          "published_at": "2026-09-08T16:04:33+00:00",
+          "published_at_source": "YouTube watch-page microformat publishDate and uploadDate; not inferred from Steam announcement date.",
+          "relationship": "Embedded by the developer in an official Steam announcement",
+          "relationship_source_url": "https://steamcommunity.com/games/4624120/announcements/detail/695397189431593330",
+          "statistics_status": "not_collected",
+          "oembed_source_url": "https://www.youtube.com/oembed?url=https%3A%2F%2Fwww.youtube.com%2Fwatch%3Fv%3De7vk4IplJjo&format=json"
+        }
+      ]
+    }
+  ]
+}
