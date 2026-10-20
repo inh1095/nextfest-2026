@@ -1,0 +1,11 @@
+[Unit]
+Description=Next Fest GitHub collection fallback
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=%h/claude-project/nextfest-2026
+ExecStart=/usr/bin/python3 %h/claude-project/nextfest-2026/scripts/watch_dispatch.py
+TimeoutStartSec=150
+UMask=0077
+NoNewPrivileges=true

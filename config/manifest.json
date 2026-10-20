@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "event": {
     "name": "Steam Next Fest · October 2026",
     "starts_at": "2026-10-19T17:00:00Z",
@@ -11,7 +11,16 @@
   "collection": {
     "interval_minutes": 20,
     "news_interval_minutes": 180,
-    "stops_at": "2026-10-26T17:00:00Z"
+    "stops_at": "2026-10-26T17:00:00Z",
+    "ccu_request_budget": 700,
+    "news_request_budget": 360,
+    "daily_request_budget": 90000,
+    "min_request_interval_seconds": 0.5,
+    "priority_game_ids": [
+      "hela",
+      "lethal-wedding"
+    ],
+    "max_run_seconds": 840
   },
   "games": [
     {

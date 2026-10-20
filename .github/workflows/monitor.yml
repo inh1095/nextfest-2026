@@ -17,7 +17,7 @@ permissions:
 jobs:
   monitor:
     runs-on: ubuntu-latest
-    timeout-minutes: 8
+    timeout-minutes: 18
     permissions:
       contents: write
     outputs:
@@ -31,16 +31,40 @@ jobs:
           python-version: '3.12'
       - name: Verify collector
         run: python3 -m unittest discover -s tests -v
-      - name: Collect public observations within the event window
+      - name: Verify browser script
+        run: node --check site/app.js
+      - name: Check for a recently completed collection
+        id: cadence
+        if: github.event_name != 'push'
+        run: python3 scripts/fleet.py --check-due
+      - name: Reserve request budget before starting network collection
+        if: github.event_name != 'push' && steps.cadence.outputs.due == 'true'
+        run: |
+          python3 scripts/fleet.py --reserve-only --run-id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/data/collection-state.json
+          if ! git diff --cached --quiet; then
+            git commit -m "data: reserve bounded collection budget"
+            git push origin HEAD:main
+          fi
+      - name: Collect or rebuild the published indexes
         id: collect
-        run: python3 scripts/collect.py
+        env:
+          COLLECTION_DUE: ${{ steps.cadence.outputs.due }}
+        run: |
+          if [ "$GITHUB_EVENT_NAME" = "push" ] || [ "$COLLECTION_DUE" != "true" ]; then
+            python3 scripts/fleet.py --build-only
+          else
+            python3 scripts/fleet.py --run-id "gh-${GITHUB_RUN_ID}-${GITHUB_RUN_ATTEMPT}"
+          fi
       - name: Validate public data
         run: python3 scripts/validate.py
       - name: Preserve observations in repository history
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add site/data/config.json site/data/observations.json site/data/observations.csv
+          git add site/data
           if ! git diff --cached --quiet; then
             git commit -m "data: update Next Fest observations"
             git push origin HEAD:main

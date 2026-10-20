@@ -1,0 +1,11 @@
+[Unit]
+Description=Check Next Fest collection every five minutes
+
+[Timer]
+OnActiveSec=10s
+OnUnitActiveSec=5min
+AccuracySec=5s
+Unit=nextfest-monitor-watch.service
+
+[Install]
+WantedBy=timers.target
