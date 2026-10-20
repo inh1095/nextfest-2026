@@ -256,7 +256,7 @@ def collect(config: dict, data: dict, *, now: datetime | None = None, fetch=fetc
 def export_csv(data: dict, path: Path) -> None:
     fields = ["game_id", "metric", "observed_at", "value", "status", "source_url", "error_code"]
     output = io.StringIO()
-    writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore")
+    writer = csv.DictWriter(output, fieldnames=fields, extrasaction="ignore", lineterminator="\n")
     writer.writeheader()
     writer.writerows(data["samples"])
     path.write_text(output.getvalue(), encoding="utf-8")
