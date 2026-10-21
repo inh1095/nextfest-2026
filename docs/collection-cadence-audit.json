@@ -1,0 +1,463 @@
+{
+  "schema_version": 1,
+  "audited_at": "2026-10-21T06:32:45Z",
+  "repository_head": "b42e0a8d48bbf46687d912f2cbcae4870cec3ce0",
+  "history_snapshot_generated_at": "2026-10-21T06:29:54Z",
+  "public_snapshot_verified_generated_at": "2026-10-21T06:23:54Z",
+  "scope": "기존 로컬 누적자료와 공개 Pages JSON/최근 GitHub 실행을 읽기 대조. Steam 신규요청/수집/dispatch/코드·운영데이터 변경 없음. 이 감사문서만 작성.",
+  "statistics_definition": {
+    "metric": "데모 AppID 순간 CCU(명/계정 동시 접속 수). 누적 고유 이용자 수·Wishlist 수 아님.",
+    "interval": "각 게임의 시간순 연속 status=ok demo_ccu 관측 사이 실제 분 단위 차이",
+    "percentile": "정렬표본 linear interpolation, index=(N-1)*q",
+    "pooled_weighting": "관측간격마다 동일 가중. 게임별 중앙값 분포도 별도 제시.",
+    "mixed_bootstrap_warning": "전체 통계는 초기 소수 수동관측/최초전수baseline과 이후 순환배치를 함께 포함. bootstrap 제외 비우선게임 통계는 별도 제공.",
+    "steady_window_start": "2026-10-20T09:54:14Z",
+    "timestamps": "UTC; 화면 KST는 UTC+9. observed_at은 현재코드에서 HTTP완료 후 시각, 발표 published_at과 다름."
+  },
+  "configured_cadence": {
+    "workflow_schedule": "7,27,47 * * * * (UTC), 목표20분; 실행시각 보장 아님",
+    "workflow_push_behavior": "build-only, 신규 Steam 요청 없음",
+    "minimum_due_guard_minutes": 15,
+    "fallback_watch": "PC가 켜져 있을 때 systemd timer 5분마다 GitHub 상태조회, 최근20분 내 collecting event/실행중 작업이면 skip; dispatch 생성시각과 실제관측시각은 다름",
+    "batch_target_minutes": 20,
+    "priority_ccu_target_minutes": 20,
+    "normal_ccu_target_minutes": 220,
+    "ccu_games_mapped": 7163,
+    "ccu_request_budget_per_run": 700,
+    "normal_ccu_slots_before_retries": 698,
+    "news_request_budget_per_run": 360,
+    "news_sources": 14327,
+    "news_target_cycle_minutes": 800,
+    "news_legacy_config_value_minutes": 180,
+    "news_legacy_config_value_effect": "fleet.py 실행에서 news_interval_minutes를 참조하지 않으므로 180분 재조회 보장이 아님. 소스 cursor 순환으로 작동.",
+    "spacing_seconds": 0.5,
+    "max_run_seconds": 840,
+    "wishlist_exact_stock_polling": false,
+    "followers_recurring_polling": false,
+    "wishlist_page_refresh": "기존 수동검토 발표와 뉴스 언급 index를 build/collection 완료시 재생성. 브라우저 재조회도 새 Wishlist 실측 API 호출이 아님.",
+    "wishlist_evidence_reviewed_at": "2026-10-21T05:11:27Z"
+  },
+  "observed_batch_cadence": {
+    "completed_positive_request_github_batches": 56,
+    "first_started_at": "2026-10-20T09:54:14Z",
+    "last_started_at": "2026-10-21T06:15:05Z",
+    "start_to_start_minutes": {
+      "count": 55,
+      "min": 16.183,
+      "median": 22.2,
+      "p90": 22.277,
+      "max": 33.5
+    },
+    "latest_start_to_start_minutes": 22.233
+  },
+  "ccu_history": {
+    "history_files": 7164,
+    "games_with_ccu": 7163,
+    "total_samples_all_metrics": 46357,
+    "metric_counts": {
+      "demo_ccu": 46355,
+      "followers": 2
+    },
+    "demo_ccu_samples": 46355,
+    "status_counts": {
+      "ok": 46355
+    },
+    "error_code_counts": {},
+    "events": 18559,
+    "valid_samples_per_game": {
+      "count": 7164,
+      "min": 0,
+      "median": 6.0,
+      "p90": 7.0,
+      "max": 59
+    },
+    "all_pooled_interval_minutes": {
+      "count": 39192,
+      "min": 9.1,
+      "median": 223.317,
+      "p90": 239.633,
+      "max": 251.15
+    },
+    "nonpriority_pooled_interval_minutes": {
+      "count": 39076,
+      "min": 16.133,
+      "median": 223.317,
+      "p90": 239.633,
+      "max": 251.15
+    },
+    "nonpriority_after_bootstrap_interval_minutes": {
+      "count": 31915,
+      "min": 16.133,
+      "median": 223.617,
+      "p90": 239.733,
+      "max": 251.15
+    },
+    "distribution_of_game_median_intervals_minutes": {
+      "count": 7163,
+      "min": 22.2,
+      "median": 223.283,
+      "p90": 223.567,
+      "max": 226.383
+    },
+    "distribution_of_game_latest_intervals_minutes": {
+      "count": 7163,
+      "min": 22.233,
+      "median": 223.45,
+      "p90": 239.783,
+      "max": 251.15
+    },
+    "first_observed_at": "2026-10-20T06:59:20Z",
+    "all_baselines_present_by": "2026-10-20T09:45:28Z",
+    "first_observation_lag_after_event_start_hours": 13.989,
+    "last_baseline_lag_hours": 16.758,
+    "latest_observed_at": "2026-10-21T06:20:55Z",
+    "duplicate_timestamp_games": [],
+    "ordered_ccu_records_sha256": "e577f2d3e5d51ef331afc4dc12a3e670bea822b561badfad599c73962a4ae1ba",
+    "seeds": {
+      "hela": {
+        "metric": "demo_ccu",
+        "app_id": 3161310,
+        "demo_app_id": 4553860,
+        "total_history_samples": 60,
+        "ccu_samples": 59,
+        "ccu_valid_samples": 59,
+        "interval_minutes": {
+          "count": 58,
+          "min": 9.1,
+          "median": 22.2,
+          "p90": 22.383,
+          "max": 92.133
+        },
+        "steady_interval_minutes": {
+          "count": 54,
+          "min": 16.183,
+          "median": 22.2,
+          "p90": 22.267,
+          "max": 38.9
+        },
+        "latest_interval_minutes": 22.233,
+        "last_two_samples": [
+          {
+            "game_id": "hela",
+            "metric": "demo_ccu",
+            "observed_at": "2026-10-21T05:52:51Z",
+            "value": 105,
+            "status": "ok",
+            "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+            "error_code": null
+          },
+          {
+            "game_id": "hela",
+            "metric": "demo_ccu",
+            "observed_at": "2026-10-21T06:15:05Z",
+            "value": 106,
+            "status": "ok",
+            "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+            "error_code": null
+          }
+        ],
+        "first_sample": {
+          "game_id": "hela",
+          "metric": "demo_ccu",
+          "observed_at": "2026-10-20T06:59:20Z",
+          "value": 159,
+          "status": "ok",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+          "error_code": null
+        },
+        "gap_over_30min": [
+          {
+            "from": "2026-10-20T07:20:36Z",
+            "to": "2026-10-20T08:22:06Z",
+            "minutes": 61.5
+          },
+          {
+            "from": "2026-10-20T08:22:06Z",
+            "to": "2026-10-20T09:54:14Z",
+            "minutes": 92.133
+          },
+          {
+            "from": "2026-10-20T17:40:39Z",
+            "to": "2026-10-20T18:19:33Z",
+            "minutes": 38.9
+          },
+          {
+            "from": "2026-10-21T04:57:22Z",
+            "to": "2026-10-21T05:30:52Z",
+            "minutes": 33.5
+          }
+        ],
+        "news_sources": {
+          "3161310": {
+            "last_attempt_at": "2026-10-21T01:45:03Z",
+            "last_success_at": "2026-10-21T01:45:03Z",
+            "status": "ok",
+            "error_codes": []
+          },
+          "4553860": {
+            "last_attempt_at": "2026-10-21T01:45:04Z",
+            "last_success_at": "2026-10-21T01:45:04Z",
+            "status": "ok",
+            "error_codes": []
+          }
+        }
+      },
+      "lethal-wedding": {
+        "metric": "demo_ccu",
+        "app_id": 4624120,
+        "demo_app_id": 4768410,
+        "total_history_samples": 60,
+        "ccu_samples": 59,
+        "ccu_valid_samples": 59,
+        "interval_minutes": {
+          "count": 58,
+          "min": 9.133,
+          "median": 22.2,
+          "p90": 22.428,
+          "max": 92.183
+        },
+        "steady_interval_minutes": {
+          "count": 54,
+          "min": 16.183,
+          "median": 22.2,
+          "p90": 22.318,
+          "max": 38.933
+        },
+        "latest_interval_minutes": 22.233,
+        "last_two_samples": [
+          {
+            "game_id": "lethal-wedding",
+            "metric": "demo_ccu",
+            "observed_at": "2026-10-21T05:52:53Z",
+            "value": 0,
+            "status": "ok",
+            "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+            "error_code": null
+          },
+          {
+            "game_id": "lethal-wedding",
+            "metric": "demo_ccu",
+            "observed_at": "2026-10-21T06:15:07Z",
+            "value": 1,
+            "status": "ok",
+            "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+            "error_code": null
+          }
+        ],
+        "first_sample": {
+          "game_id": "lethal-wedding",
+          "metric": "demo_ccu",
+          "observed_at": "2026-10-20T06:59:21Z",
+          "value": 0,
+          "status": "ok",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+          "error_code": null
+        },
+        "gap_over_30min": [
+          {
+            "from": "2026-10-20T07:20:36Z",
+            "to": "2026-10-20T08:22:07Z",
+            "minutes": 61.517
+          },
+          {
+            "from": "2026-10-20T08:22:07Z",
+            "to": "2026-10-20T09:54:18Z",
+            "minutes": 92.183
+          },
+          {
+            "from": "2026-10-20T17:40:40Z",
+            "to": "2026-10-20T18:19:36Z",
+            "minutes": 38.933
+          },
+          {
+            "from": "2026-10-21T04:57:23Z",
+            "to": "2026-10-21T05:30:55Z",
+            "minutes": 33.533
+          }
+        ],
+        "news_sources": {
+          "4624120": {
+            "last_attempt_at": "2026-10-20T15:33:55Z",
+            "last_success_at": "2026-10-20T15:33:55Z",
+            "status": "ok",
+            "error_codes": []
+          },
+          "4768410": {
+            "last_attempt_at": "2026-10-20T15:33:55Z",
+            "last_success_at": "2026-10-20T15:33:55Z",
+            "status": "ok",
+            "error_codes": []
+          }
+        }
+      }
+    },
+    "limitations": [
+      "행사 시작~최초 관측 약14시간 공백을 백필하지 않음",
+      "관측 사이의 실제 peak/급등락은 놓칠 수 있음; 관측최고값은 실제 행사최고값과 다름",
+      "관측값 합계는 누적 플레이어 수가 아니며 누적 unique players로 변환할 근거 없음",
+      "공백은0이 아니고 실제 샘플 사이 보간을 측정치로 취급하면 안 됨"
+    ]
+  },
+  "news_history": {
+    "source_status_counts": {
+      "ok": 14323,
+      "error": 4
+    },
+    "latest_status_error_sources": [
+      {
+        "game_id": "steam-5091050",
+        "app_id": 5091050,
+        "last_attempt_at": "2026-10-20T22:01:55Z",
+        "last_success_at": null,
+        "status": "error",
+        "error_codes": [
+          "http_502"
+        ]
+      },
+      {
+        "game_id": "steam-5091050",
+        "app_id": 5249090,
+        "last_attempt_at": "2026-10-20T22:01:56Z",
+        "last_success_at": null,
+        "status": "error",
+        "error_codes": [
+          "http_502"
+        ]
+      },
+      {
+        "game_id": "steam-5091340",
+        "app_id": 5091340,
+        "last_attempt_at": "2026-10-20T22:01:57Z",
+        "last_success_at": null,
+        "status": "error",
+        "error_codes": [
+          "http_502"
+        ]
+      },
+      {
+        "game_id": "steam-5091340",
+        "app_id": 5118860,
+        "last_attempt_at": "2026-10-20T22:01:58Z",
+        "last_success_at": null,
+        "status": "error",
+        "error_codes": [
+          "http_502"
+        ]
+      }
+    ],
+    "oldest_last_attempt_at": "2026-10-20T15:33:55Z",
+    "newest_last_attempt_at": "2026-10-21T06:23:54Z",
+    "poll_interval_measurement_limit": "현재 news_sources는 소스별 마지막 성공/시도만 보존. events는 신규 event ID만 append하므로 빈 응답을 포함한 소스별 모든 poll 시각의 중앙/p90은 이 현재파일만으로 산출 불가. git 이전 스냅샷 비교는 이번 감사에서 전량 재구성하지 않음.",
+    "collection_window_limit": "소스별 최신20개 공지 조회. 원문 전체/모든 과거공지 전수 보장 아님. 기존 source ID는 덮어쓰지 않는 구조.",
+    "publication_vs_verification": "published_at은 공지 게시시각, verified_at은 발견/검증시각; 수치의 실제측정 as_of와 다를 수 있음."
+  },
+  "preservation": {
+    "collector_behavior": "demo_ccu samples.append, 새 event ID만 events.extend; retention slicing/pruning 없음",
+    "legacy_original_samples": 10,
+    "legacy_original_metric_counts": {
+      "demo_ccu": 8,
+      "followers": 2
+    },
+    "legacy_samples_exactly_preserved": true,
+    "evidence_guard_readonly_result": {
+      "baseline": "c038e7397ac778748a7b7c05b4af5212d629bfa9",
+      "files": 7167,
+      "preserved_records": 64294,
+      "passed": true
+    },
+    "latest_remote_workflow_guard": "39554225252 evidence preservation step success",
+    "limit": "검사한 baseline/legacy 대비 보존 확인이며 수집 이전 존재하지 않았던 원본·과거 전체의 보존을 주장하지 않음"
+  },
+  "wishlist_calibration": {
+    "reviewed_disclosures": 26,
+    "reviewed_disclosure_games": 21,
+    "stock_definition_counts": {
+      "unspecified": 26
+    },
+    "usable_as_current_stock_count": 0,
+    "verified_current_stock_time_series_points": 0,
+    "valid_same_game_same_time_follower_stock_calibration_pairs": 0,
+    "stored_trained_or_holdout_evaluation_records": 0,
+    "latest_follower_checks": [
+      {
+        "game_id": "hela",
+        "status": "conflict",
+        "value": null
+      },
+      {
+        "game_id": "lethal-wedding",
+        "status": "conflict",
+        "value": null
+      }
+    ],
+    "public_wishlist_index_coverage": {
+      "disclosure_games": 21,
+      "disclosures": 26,
+      "mention_games": 1158,
+      "mentions": 1719,
+      "followers_ok": 0,
+      "followers_conflict": 2
+    },
+    "basis": "config/wishlist-evidence.json의26발표 모두stock_definition unspecified/currentstock불가, followers2 conflict/null. historical125+연구는2023 익명표본이며현재행사실측보정표본이아님. browser오차입력은전송/저장하지않는구조로학습데이터에누적되지않음.",
+    "no_accuracy_claim": "정확잔액/예측오차/경쟁작전수근접도를 현재재료로 검증했다고 주장할 수 없음."
+  },
+  "remote_verification": {
+    "run_id": 39554225252,
+    "url": "https://github.com/inh1095/nextfest-2026/actions/runs/39554225252",
+    "event": "workflow_dispatch",
+    "conclusion": "success",
+    "last_run": {
+      "run_id": "gh-39554225252-1",
+      "started_at": "2026-10-21T06:15:05Z",
+      "finished_at": "2026-10-21T06:23:54Z",
+      "ccu_requests": 700,
+      "news_requests": 360,
+      "request_count": 1060,
+      "reserved_requests": 1060,
+      "pause_reason": null,
+      "ccu_games_attempted": 698,
+      "news_sources_attempted": 360
+    },
+    "monitor_and_pages_publish": "success",
+    "latest_native_checked": {
+      "run_id": 39547778824,
+      "created_at": "2026-10-21T05:07:22Z",
+      "event": "schedule",
+      "due": false,
+      "actual_behavior": "build-only; 04:57:22 수집 last_run이 그대로 유지. schedule success를 새 수집으로 셈하지 않음."
+    },
+    "public_summary_url": "https://inh1095.github.io/nextfest-2026/data/summary.json"
+  },
+  "evidence_needed_for_improvement": [
+    {
+      "priority": 1,
+      "need": "타사 개발사가 직접 공개/제공한 정확한 outstanding Wishlist balance의 같은게임·같은측정시각 자료",
+      "why": "milestone 도달값/목표/누적추가량과 구분한 실제 정답이 있어야 오차를 측정할 수 있음. 자사 한게임만으로 타사 전체 정확도 보장 불가."
+    },
+    {
+      "priority": 2,
+      "need": "공식게임그룹과 필드가 검증되고 count conflict가 해소된 동일시각 followers",
+      "why": "현재2seed는상충값이므로 임의선택/평균/대표채택 없이 null 유지. 현재followers와과거milestone을나눠보정금지."
+    },
+    {
+      "priority": 3,
+      "need": "장르·출시상태·규모·행사노출이 다양한 동시점 정답/입력 표본, 별도검증표본 및 오차분포",
+      "why": "2023 7~20배 경험범위는 2026 예측오차/신뢰구간이 아님. train/holdout와method/version을분리해야 성능을정직하게평가가능."
+    },
+    {
+      "priority": 4,
+      "need": "공지확인 시각/결과의 append-only poll 기록과 전체본문 증거 또는 필요한부분의 hash/원문보존",
+      "why": "지금 마지막소스상태만으로재조회지연과빈응답이력을계산불가. 요약에서잘린수치·범위·정의가있을수있음."
+    },
+    {
+      "priority": 5,
+      "need": "관심게임은 별도우선순위와명시된예산으로관측빈도개선; 게임별실제interval/age/공백표시",
+      "why": "일반게임약4시간 CCU로 짧은spike를보장못함. 요청증대가Wishlist정확도개선으로자동연결되지는않음."
+    },
+    {
+      "priority": 6,
+      "need": "원본관측·검토발표·모델시나리오·재산정version을분리하고각각timestamp와source보존",
+      "why": "새시점관측수치는정상적으로변할수있음. 기존증거를덮지않는것과추정값이영원히동일하다는것은다름."
+    }
+  ]
+}

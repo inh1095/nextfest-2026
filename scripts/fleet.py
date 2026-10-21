@@ -7,6 +7,7 @@ import json
 import math
 import os
 import signal
+import statistics
 import threading
 import time
 import urllib.error
@@ -206,6 +207,54 @@ def range_summary(samples, start, end, gap_minutes):
             "positive_intervals": len(increases)}
 
 
+def observation_history(samples, end):
+    """Stored CCU history, not a regularized series or growth-pair calculation."""
+    rows = sorted((s for s in samples if s['metric'] == 'demo_ccu' and
+                   parse(s['observed_at']) <= end), key=lambda s: s['observed_at'])
+    good = [s for s in rows if valid(s)]
+
+    def intervals(records):
+        gaps = [(parse(b['observed_at']) - parse(a['observed_at'])).total_seconds() / 60
+                for a, b in zip(records, records[1:])]
+        return (gaps[-1], statistics.median(gaps)) if gaps else (None, None)
+
+    last_attempt, median_attempt = intervals(rows)
+    last_valid, median_valid = intervals(good)
+    return {'attempt_count': len(rows), 'valid_count': len(good),
+            'error_count': sum(s['status'] == 'error' for s in rows),
+            'first_attempt_at': rows[0]['observed_at'] if rows else None,
+            'first_valid_at': good[0]['observed_at'] if good else None,
+            'latest_attempt_interval_minutes': last_attempt,
+            'median_attempt_interval_minutes': median_attempt,
+            'latest_valid_interval_minutes': last_valid,
+            'median_valid_interval_minutes': median_valid}
+
+
+def news_history(events):
+    # Publication dates describe preserved evidence, not collection attempt cadence.
+    events = [e for e in events if e.get('kind') in {'announcement', 'update'}]
+    published = sorted(e['published_at'] for e in events if e.get('published_at'))
+    return {'event_count': len(events),
+            'first_published_at': published[0] if published else None,
+            'last_published_at': published[-1] if published else None}
+
+
+def collection_metadata(config, catalog):
+    settings = config['collection']
+    sources = sum(len(set(filter(None, [g['app_id'], g.get('demo_app_id')])))
+                  for g in catalog['games'])
+    budget = settings['news_request_budget']
+    return {'scheduled_interval_minutes': settings['interval_minutes'],
+            'target_cycle_minutes': target_minutes(config, catalog, '__all__'),
+            'news_source_count': sources,
+            'news_target_cycle_minutes': (math.ceil(sources / budget) * settings['interval_minutes']
+                                          if budget > 0 else None),
+            'cadence_basis': 'configured_budget_rotation_not_guaranteed',
+            'wishlist_numeric_collection': {'mode': 'reviewed_disclosures_only',
+                                            'scheduled': False,
+                                            'target_interval_minutes': None}}
+
+
 def build_indexes(root, config=None, catalog=None, now=None):
     config = config or load_json(root / "config/manifest.json")
     catalog = catalog or load_json(root / "site/data/catalog.json")
@@ -220,11 +269,7 @@ def build_indexes(root, config=None, catalog=None, now=None):
                               "reviewed_games"], 0)
     coverage["catalog_total"] = len(catalog["games"])
     collection = config["collection"].copy()
-    mapped = sum(bool(g.get("demo_app_id")) for g in catalog["games"])
-    collection["scheduled_interval_minutes"] = collection["interval_minutes"]
-    collection["target_cycle_minutes"] = target_minutes(config, catalog, "__all__")
-    sources = sum(len(set(filter(None, [g["app_id"], g.get("demo_app_id")]))) for g in catalog["games"])
-    collection["news_target_cycle_minutes"] = math.ceil(sources / collection["news_request_budget"]) * collection["interval_minutes"]
+    collection.update(collection_metadata(config, catalog))
     full_interval = collection["target_cycle_minutes"]
     for game in catalog["games"]:
         gid = game["id"]
@@ -246,6 +291,8 @@ def build_indexes(root, config=None, catalog=None, now=None):
                           "last_ok_at": latest["observed_at"] if latest else None,
                           "current": latest["value"] if latest else None,
                           "last_error_code": last.get("error_code") if last else None,
+                          "observation_history": observation_history(rows, end),
+                          "news_history": news_history(history['events']),
                           "ranges": ranges, "news_status": news.get("status", "pending"),
                           "last_news_attempt_at": news.get("last_attempt_at"),
                           "news_all_checked_at": news.get("all_sources_checked_at"),

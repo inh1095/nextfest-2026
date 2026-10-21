@@ -7,7 +7,8 @@ from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
 from collect import ROOT, load_json, parse, stamp
-from fleet import adjacent, range_summary, target_minutes
+from fleet import (adjacent, range_summary, target_minutes, observation_history,
+                   news_history, collection_metadata)
 from wishlist import build_index as build_wishlist_index
 
 
@@ -57,6 +58,7 @@ def expected_ccu_summary(history, game, config, full_interval, start, end):
         'last_ok_at': latest['observed_at'] if latest else None,
         'current': latest['value'] if latest else None,
         'last_error_code': last.get('error_code') if last else None,
+        'observation_history': observation_history(samples, end),
         'ranges': ranges,
     }, samples
 
@@ -164,6 +166,7 @@ def validate(root: Path = ROOT):
             'last_news_attempt_at': news.get('last_attempt_at'),
             'news_all_checked_at': news.get('all_sources_checked_at'),
             'news_error_codes': news.get('error_codes', []),
+            'news_history': news_history(hist['events']),
         }.items():
             require(field in rows[gid], f'missing_summary_{field}')
             require_same_json(rows[gid][field], value, f'summary_{field}_mismatch:{gid}')
@@ -191,6 +194,10 @@ def validate(root: Path = ROOT):
     require_same_json(summary['coverage'], expected_coverage, 'summary_coverage_mismatch')
     require_same_json(summary['collection'].get('target_cycle_minutes'),
                       full_interval, 'summary_target_cycle_mismatch')
+    for field, value in collection_metadata(config, catalog).items():
+        require(field in summary['collection'], f'missing_collection_{field}')
+        require_same_json(summary['collection'][field], value,
+                          f'summary_collection_{field}_mismatch')
     require(len(event_index['events']) == len(all_events), 'event_index_count_mismatch')
     require(len({e['id'] for e in event_index['events']}) == len(all_events), 'duplicate_index_event')
     for event in event_index['events']:

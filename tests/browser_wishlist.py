@@ -128,6 +128,26 @@ with sync_playwright() as p:
     assert not errors,errors
     page.close()
     print('PASS separate evidence catalog, search, deep link and CCU transition')
+    timeline=copy.deepcopy(FIXTURE)
+    original=timeline['disclosures'][0]
+    timeline['disclosures']=[original,{**original,'id':'fixture-earlier','published_at':'2026-09-01',
+        'value':50000,'operator':'gte','stock_definition':'lifetime_adds','platform_scope':'steam'},
+        {**original,'id':'fixture-period','published_at':'2026-10-21T01:00:00Z',
+         'value':500,'operator':'approx','kind':'period_additions','stock_definition':'period_adds'}]
+    page,errors,_=open_page(browser,data=timeline)
+    expect(page.locator('.wish-timeline > li')).to_have_count(3)
+    items=page.locator('.wish-timeline > li')
+    expect(items.nth(0)).to_contain_text('50,000 이상')
+    expect(items.nth(1)).to_contain_text('100,000 초과')
+    expect(items.nth(2)).to_contain_text('약 500')
+    expect(items.nth(2)).to_contain_text('기간 추가')
+    expect(page.locator('#wishlist-disclosures')).to_contain_text('실제 찜 잔액 추이 미확보')
+    expect(page.locator('#wishlist-disclosures')).to_contain_text('정기 수집 없음')
+    assert page.locator('#wishlist-disclosures svg').count()==0
+    assert not errors,errors
+    page.close()
+    print('PASS disclosure timeline preserves date/operator/definition without inventing a wishlist trend')
+
 
     for data in [None,{**copy.deepcopy(FIXTURE),'methods':[]}]:
         page,errors,_=open_page(browser,data=data)

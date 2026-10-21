@@ -12,7 +12,7 @@ from playwright.sync_api import expect, sync_playwright
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'scripts'))
-from fleet import blank_history, range_summary
+from fleet import blank_history, range_summary, observation_history
 from collect import parse
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else 'http://127.0.0.1:8765/'
@@ -56,6 +56,7 @@ def fixture(samples=None, events=None, now=NOW):
         row.update(current=last['value'] if last else None, last_ok_at=last['observed_at'] if last else None,
                    last_attempt_at=latest['observed_at'] if latest else None,
                    status=latest['status'] if latest else 'pending', last_error_code=latest['error_code'] if latest else None)
+        row['observation_history']=observation_history(hist['samples'],parse(now))
         row['ranges'] = {k:range_summary(hist['samples'], parse(CONFIG['event']['starts_at']) if k == 'all'
                         else max(parse(CONFIG['event']['starts_at']), parse(now)-timedelta(hours=int(k))),
                         parse(now), row['target_interval_minutes']*2+30) for k in ('all','6','24')}
@@ -254,6 +255,9 @@ with sync_playwright() as playwright:
     expect(page.locator('#samples-table tbody tr')).to_have_count(2)
     reveal(page, '#samples-table')
     assert '수집 오류' in page.locator('#samples-table').inner_text()
+    expect(page.locator('#analysis-history')).to_contain_text('2건 저장')
+    expect(page.locator('#analysis-history')).to_contain_text('오류 1건')
+    expect(page.locator('#analysis-chart circle')).to_have_count(1)
     with page.expect_download() as download:reveal(page, '#download-csv').click()
     assert 'network_error' in Path(download.value.path()).read_text(encoding='utf-8-sig')
     page.route('**/data/summary.json*',lambda r:r.fulfill(status=503,body='unavailable'))
@@ -297,6 +301,30 @@ with sync_playwright() as playwright:
     assert not errors,errors
     page.close()
     print('PASS past spikes survive later declines and period filters exclude old peaks')
+    page,errors,_=load_page(browser,fixture(historical),route='collection?game=hela&range=6',mobile=True)
+    selected=page.locator('#selected-game-history')
+    expect(selected).to_contain_text('마지막 관측 동접')
+    expect(selected.locator('.last-observation strong')).to_have_text('10')
+    expect(selected).to_contain_text('3건 저장')
+    expect(selected).to_contain_text('정상 관측 3회')
+    expect(selected).to_contain_text('2026.10.20 03:00 KST')
+    expect(selected.locator('.last-observation-time')).to_contain_text('2026.10.20 17:20 KST')
+    expect(page.locator('#collection-cadence')).to_contain_text('화면 새로고침')
+    expect(page.locator('#collection-cadence')).to_contain_text('찜 수치 정기 수집')
+    expect(page.locator('#collection-cadence')).to_contain_text('없음')
+    page.locator('#open-full-history').click()
+    expect(page.locator('[data-range="all"]')).to_have_attribute('aria-pressed','true')
+    expect(page.locator('#analysis-chart circle')).to_have_count(3)
+    expect(page.locator('#analysis-history')).to_contain_text('3건 저장')
+    expect(page.locator('#analysis-history')).to_contain_text('누적 이용자 수가 아닙니다')
+    page.locator('[data-range="6"]').click()
+    expect(page.locator('#analysis-chart circle')).to_have_count(2)
+    expect(page.locator('#analysis-history')).to_contain_text('3건 저장')
+    expect(page.locator('#analysis-history')).to_contain_text('2026.10.20 03:00 KST')
+    assert not errors,errors
+    page.close()
+    print('PASS explicit CCU units, saved history survives range filters, full-history link and separate cadence')
+
 
     events=fixture()['events-index']['events']
     events[0]['published_at']='2026-10-19T14:59:00Z'
