@@ -208,7 +208,8 @@ def range_summary(samples, start, end, gap_minutes):
 def build_indexes(root, config=None, catalog=None, now=None):
     config = config or load_json(root / "config/manifest.json")
     catalog = catalog or load_json(root / "site/data/catalog.json")
-    now = now or datetime.now(UTC)
+    # Window calculations must use the same second precision as published timestamps.
+    now = parse(stamp(now or datetime.now(UTC)))
     start, stop = parse(config["event"]["starts_at"]), parse(config["collection"]["stops_at"])
     end = min(now, stop)
     collected, events = [], {}

@@ -97,6 +97,27 @@ class ValidateIntegrityTests(unittest.TestCase):
                 self.mutate(['games', 0, 'ranges', period, 'peak'], 987654321,
                             'summary_ranges_mismatch')
 
+    def test_fractional_build_time_keeps_exact_published_window_boundaries(self):
+        history = blank_history(self.now)
+        history['samples'] = [self.sample('b', 999, 24 * 60),
+                              self.sample('b', 0, 6 * 60),
+                              self.sample('b', 10, 6 * 60 - 20)]
+        path = history_path(self.root, 'b')
+        save(path, history)
+        before = path.read_bytes()
+        self.summary = build_indexes(self.root, now=self.now.replace(microsecond=543210))
+        row = self.summary['games'][1]
+        self.assertEqual(self.summary['generated_at'], stamp(self.now))
+        self.assertEqual(row['ranges']['6']['valid_count'], 2)
+        self.assertEqual(row['ranges']['24']['valid_count'], 3)
+        self.assertEqual(row['ranges']['6']['first']['observed_at'],
+                         stamp(self.now - timedelta(hours=6)))
+        self.assertEqual(row['ranges']['24']['peak'], 999)
+        self.assertEqual(row['ranges']['6']['latest_adjacent']['delta'], 10)
+        self.assertIsNone(row['ranges']['6']['latest_adjacent']['percent'])
+        self.check()
+        self.assertEqual(path.read_bytes(), before)
+
     def test_delta_percent_and_zero_denominator_mutations_rejected(self):
         for field, value in [('delta', 999), ('percent', 99), ('elapsed_minutes', 1)]:
             with self.subTest(field=field):
