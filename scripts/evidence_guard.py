@@ -10,7 +10,7 @@ from pathlib import Path
 
 from collect import ROOT
 
-EVIDENCE_FIELDS = ("samples", "events", "analyses")
+EVIDENCE_FIELDS = ("samples", "events", "analyses", "disclosures", "follower_checks", "methods")
 
 
 def signature(record):
@@ -21,8 +21,8 @@ def signature(record):
 def require_preserved(before, after, path):
     count = 0
     for field in EVIDENCE_FIELDS:
-        previous = Counter(map(signature, before[field]))
-        current = Counter(map(signature, after[field]))
+        previous = Counter(map(signature, before.get(field, [])))
+        current = Counter(map(signature, after.get(field, [])))
         if previous - current:
             raise ValueError(f"evidence_changed_or_removed: {path}: {field}")
         count += sum(previous.values())
@@ -37,7 +37,8 @@ def check_evidence(root: Path = ROOT, baseline_ref: str = "HEAD"):
     revision = git("rev-parse", "--verify", "--end-of-options",
                    f"{baseline_ref}^{{commit}}").decode().strip()
     paths = git("ls-tree", "-r", "-z", "--name-only", revision, "--",
-                "site/data/games/", "site/data/observations.json").decode().split("\0")
+                "site/data/games/", "site/data/observations.json",
+                "config/wishlist-evidence.json", "site/data/wishlists.json").decode().split("\0")
     paths = [p for p in paths if p.endswith(".json")]
     if not paths:
         raise ValueError("baseline_has_no_evidence")

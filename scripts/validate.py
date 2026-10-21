@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from collect import ROOT, load_json, parse, stamp
 from fleet import adjacent, range_summary, target_minutes
+from wishlist import build_index as build_wishlist_index
 
 
 def require(condition, message):
@@ -205,6 +206,11 @@ def validate(root: Path = ROOT):
         used = reservation.get('used')
         require(used is None or 0 <= used <= reservation['allowance'], 'request_reservation_exceeded')
     require(all(v <= config['collection']['daily_request_budget'] for v in budgets.values()), 'daily_request_budget_exceeded')
+    wishlist_path = root / 'site/data/wishlists.json'
+    require(wishlist_path.is_file(), 'wishlist_index_missing')
+    require_same_json(load_json(wishlist_path),
+                      build_wishlist_index(root, catalog, generated, events=list(all_events.values())),
+                      'wishlist_index_mismatch')
     print(f"Validated {len(games)} catalog games, {counts['samples']} observations, {counts['events']} events; original evidence preserved.")
 
 

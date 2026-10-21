@@ -95,6 +95,33 @@ class EvidenceGuardTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "evidence_changed_or_removed"):
             require_preserved(old, self.original, "fixture")
 
+    def test_wishlist_sources_and_methods_are_immutable_but_new_versions_are_allowed(self):
+        before = {
+            'disclosures': [{'id': 'statement-1', 'value': 1000, 'operator': 'gte'}],
+            'follower_checks': [{'id': 'check-1', 'value': None, 'status': 'conflict'}],
+            'methods': [{'id': 'method-v1', 'lower_multiplier': 7, 'upper_multiplier': 20}],
+        }
+        after = copy.deepcopy(before)
+        after['methods'].append({'id': 'method-v2', 'lower_multiplier': 8, 'upper_multiplier': 21})
+        self.assertEqual(require_preserved(before, after, 'wishlist-fixture'), 3)
+        for field in before:
+            with self.subTest(field=field):
+                altered = copy.deepcopy(before)
+                altered[field] = []
+                with self.assertRaisesRegex(ValueError, 'evidence_changed_or_removed'):
+                    require_preserved(before, altered, 'wishlist-fixture')
+
+    def test_wishlist_config_is_checked_from_git_baseline(self):
+        path = self.root / 'config/wishlist-evidence.json'
+        path.parent.mkdir()
+        path.write_text(json.dumps({'disclosures': [{'id': 'one', 'value': 1000}]}))
+        self.git('add', '.')
+        self.git('-c', 'user.name=Fixture', '-c', 'user.email=fixture@example.test',
+                 'commit', '-qm', 'Reviewed wishlist disclosure')
+        path.write_text(json.dumps({'disclosures': [{'id': 'one', 'value': 2000}]}))
+        with self.assertRaisesRegex(ValueError, 'evidence_changed_or_removed'):
+            self.check()
+
     def test_failed_push_cannot_reset_the_next_scheduled_run_baseline(self):
         self.git("branch", "evidence-approved")
         new = copy.deepcopy(self.original)

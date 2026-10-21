@@ -18,6 +18,7 @@ from pathlib import Path
 
 from collect import (ROOT, UTC, USER_AGENT, ccu_url, error_code,
                      load_json, news_events, parse, parse_ccu, stamp)
+from wishlist import build_index as build_wishlist_index
 
 ACTIVE_CLIENT = None
 
@@ -212,7 +213,7 @@ def build_indexes(root, config=None, catalog=None, now=None):
     now = parse(stamp(now or datetime.now(UTC)))
     start, stop = parse(config["event"]["starts_at"]), parse(config["collection"]["stops_at"])
     end = min(now, stop)
-    collected, events = [], {}
+    collected, events, wishlist_events = [], {}, []
     coverage = dict.fromkeys(["catalog_total", "demo_resolved", "ccu_attempted", "ccu_ok",
                               "ccu_pending", "ccu_error", "ccu_unavailable", "comparison_ready",
                               "news_checked", "news_pending", "growth_candidate_games",
@@ -266,6 +267,7 @@ def build_indexes(root, config=None, catalog=None, now=None):
             events[event["id"]] = {k: event.get(k) for k in (
                 "id", "game_id", "kind", "title", "occurred_at", "published_at",
                 "time_precision", "source_url", "verified_at")}
+        wishlist_events.extend(history['events'])
     state = read_state(root)
     if now >= stop and not state.get("archived_at"):
         state["archived_at"] = stamp(now)
@@ -280,6 +282,7 @@ def build_indexes(root, config=None, catalog=None, now=None):
     save(root / "site/data/events-index.json", {"schema_version": 2, "generated_at": stamp(now),
          "events": sorted(events.values(), key=lambda e: e.get("published_at") or "", reverse=True)})
     save(root / "site/data/config.json", config)
+    save(root / "site/data/wishlists.json", build_wishlist_index(root, catalog, now, events=wishlist_events))
     return summary
 
 

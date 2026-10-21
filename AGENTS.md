@@ -3,8 +3,10 @@
 - Public static research site for `inh1095/nextfest-2026`.
 - Preserve observations. Missing or failed readings are null, never zero.
 - Steam base and demo AppIDs must remain separate.
-- Do not label community membership counts as followers.
-- No SteamDB scraping, invented historic samples, inferred wishlists, or unsupported causal claims.
+- Only label a count as followers when the official app-group mapping and count are verified. Conflicting source counts stay null.
+- No SteamDB scraping, invented historic samples, or unsupported causal claims. Never label estimated wishlists as measured counts.
+- The user's 2026-10-21 request permits clearly separated, sourced reference scenarios and private browser-only error checks. Historical follower ratios are not calibrated predictions or confidence intervals for this festival.
+- Preserve reviewed wishlist disclosures, follower checks and method versions in config/wishlist-evidence.json. A milestone is a dated publisher claim, not a current wishlist balance or a measured addition.
 - Automated collection uses public Steam endpoints, with a fixed event end guard.
 - Astra reviews design, content and behavior. GPT-6.1-SOL collects and verifies source evidence.
 - Only reviewed analyses may be stored in `analyses`. New samples do not renew their review dates.
