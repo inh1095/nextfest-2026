@@ -1,0 +1,224 @@
+{
+  "schema_version": 1,
+  "checked_at": "2026-10-21T04:35:27Z",
+  "scope": "타사 Next Fest 참가 7,164개 게임의 정확한 현재 Wishlist 잔액 및 변화 추이 확보 가능성. 자사 백엔드 연동은 제외.",
+  "verdict": {
+    "exact_competitor_totals": "공개 Steam 자료와 확인한 서비스 문서만으로 경쟁작 전수의 정확한 Wishlist 현재 잔액/추이를 확보할 수 있다는 근거 없음.",
+    "similar_product": "GameDiscoverCo와 유사한 비교 화면과 추정 시계열 분석은 별도 데이터 이용권 및 실제 coverage 검증을 전제로 가능. 현재 사이트의 CCU/공지만으로 정확한 Wishlist 분석은 충족하지 못함.",
+    "public_republication": "GameDiscoverCo Pro는 별도 계약 대상. 현재 GitHub Pages에 데이터를 재게시할 권한은 확인되지 않음."
+  },
+  "verification": {
+    "performed": [
+      "공식 공개 문서 열람",
+      "Valve GetSupportedAPIList 공개 schema 읽기",
+      "이미 저장된 공식 공지 표본 읽기"
+    ],
+    "not_performed": [
+      "GameDiscoverCo 로그인/구매/문의",
+      "GameDiscoverCo GraphQL/MCP 실제 인증 및 데이터 응답 테스트",
+      "Steam 파트너 key 사용",
+      "개인 Wishlist 데이터 조회",
+      "경쟁작 global Wishlist API 실측",
+      "SteamDB 데이터 스크래핑",
+      "신규 Steam 공지 수집"
+    ],
+    "product_documentation_is_not_live_data_test": true
+  },
+  "sources": [
+    {
+      "name": "SteamDB Most Wishlisted",
+      "url": "https://steamdb.info/stats/mostwished/",
+      "status": "confirmed",
+      "finding": "Wishlist 수는 Steam이 공개하지 않아 알 수 없다고 명시. 표의 Follows는 Wishlist와 별도이며 순위도 개수가 아님.",
+      "unit": "rank / followers; exact wishlist stock unavailable"
+    },
+    {
+      "name": "Valve public API schema",
+      "url": "https://api.steampowered.com/ISteamWebAPIUtil/GetSupportedAPIList/v1/",
+      "status": "confirmed",
+      "finding": "IWishlistService.GetWishlistItemCount 설명은 개인의 Wishlist 항목 수이며 필수 인자는 steamid. 이 schema에는 GetWishlistCount가 없었음. per-app global Wishlist count endpoint로 해석 불가.",
+      "confirmed_methods": [
+        "GetWishlist",
+        "GetWishlistSortedFiltered",
+        "GetWishlistItemCount"
+      ],
+      "data_call_performed": false
+    },
+    {
+      "name": "Steam Partner Financials Wishlist Reporting",
+      "url": "https://partner.steamgames.com/doc/webapi/IPartnerFinancialsService#GetAppWishlistReporting",
+      "status": "confirmed",
+      "access": "Financial permissions를 가진 publisher API key 필요; 자기 partner 앱 범위",
+      "unit": "appid + GMT date의 daily actions",
+      "fields": [
+        "wishlist_adds",
+        "wishlist_deletes",
+        "wishlist_purchases",
+        "wishlist_gifts"
+      ],
+      "freshness": "최소 일 1회 갱신",
+      "finding": "응답의 명시된 summary는 기간 내 actions이며 현재 outstanding stock 필드는 확인되지 않음. history 단순 차감만으로 정확 stock 복원을 보장하지 않음."
+    },
+    {
+      "name": "Steam Wishlist Reporting",
+      "url": "https://partner.steamgames.com/doc/marketing/wishlist/reporting",
+      "status": "confirmed_with_limits",
+      "finding": "권한 있는 자사 보고서의 activity/history 및 CSV 다운로드 존재 확인. 전일까지 daily 갱신. 공개 문서만으로 CSV 전체 column schema/현재 outstanding stock column 확인은 미완료.",
+      "scope_note": "자사 자료 연동 구현은 이번 범위에서 제외"
+    },
+    {
+      "name": "GameDiscoverCo landing page",
+      "url": "https://gamediscover.co/",
+      "status": "confirmed_product_claims",
+      "finding": "Steam sales/revenue/wishlist estimates, demo/Next Fest rankings, showcase/event에 따른 Wishlist gains, GraphQL API와 MCP를 기능으로 표방. Pro with access enabled 조건.",
+      "not_proven": "7,164개 게임의 실제 제공 coverage 및 정확성, event annotation API schema"
+    },
+    {
+      "name": "GameDiscoverCo balance definition",
+      "url": "https://newsletter.gamediscover.co/p/steam-wishlists-total-matters-proven",
+      "published_date": "2025-08-15",
+      "status": "confirmed",
+      "quote": "These are wishlist balance (not additions!) estimates, btw.",
+      "finding": "해당 공식 분석의 총수는 누적 추가 횟수가 아닌 Wishlist 잔액 추정치. 정확한 Steam 실측 잔액이라는 뜻은 아님. 90일 momentum 비교도 제공한 사례."
+    },
+    {
+      "name": "GameDiscoverCo history tool",
+      "url": "https://gamediscover.co/docs/mcp/tools",
+      "status": "confirmed_documented_capability",
+      "finding": "get_game_history는 Steam wishlists 시계열 및 multiple games/release-relative dates 지원을 명시.",
+      "unverified": [
+        "실제 Wishlist history field schema",
+        "date timezone",
+        "최초 history 시작일과 게임별 기간 완전성",
+        "각 값이 실제계정에서 반환되는지"
+      ]
+    },
+    {
+      "name": "GameDiscoverCo data notes",
+      "url": "https://gamediscover.co/docs/mcp/data-notes",
+      "status": "confirmed",
+      "finding": "방향성 시장분석용이며 exact actuals로 취급하지 않도록 안내. 대부분 시장지표 daily, CCU는 더 빈번. 작은게임/신규/미출시/공개신호 부족 게임의 데이터 제한 가능.",
+      "coverage_note": "카탈로그 등재가 모든 지표 제공을 보장하지 않음"
+    },
+    {
+      "name": "GameDiscoverCo 7-day wishlist chart example",
+      "url": "https://newsletter.gamediscover.co/p/how-lort-rode-the-chaos-to-a-top",
+      "status": "confirmed_documented_example",
+      "finding": "2026년 1월 19~26일 미출시 Steam 게임의 Pro 7-day Wishlist charts를 공식 글에서 사용.",
+      "limitation": "7일 변화 지표 지원 사례이며 gross adds/net stock 차이의 정확한 API 계산식은 미검증"
+    },
+    {
+      "name": "GameDiscoverCo API authentication",
+      "url": "https://gamediscover.co/docs/graphql-api/getting-started",
+      "status": "confirmed",
+      "finding": "회사 GraphQL API access와 발급 token 필요. website 로그인 또는 MCP OAuth는 직접 GraphQL token을 대체하지 않음.",
+      "api_url": "https://api.gamediscover.co/graphql",
+      "live_api_test": false
+    },
+    {
+      "name": "GameDiscoverCo MCP requirements",
+      "url": "https://gamediscover.co/docs/mcp/getting-started",
+      "status": "confirmed",
+      "finding": "active Pro account + MCP access enabled + browser OAuth 필요. read-only 제공.",
+      "live_mcp_test": false
+    },
+    {
+      "name": "GameDiscoverCo terms",
+      "url": "https://gamediscover.co/terms-and-conditions/",
+      "status": "confirmed_with_contract_unknown",
+      "sections": {
+        "1.3": "Pro는 별도 계약 적용",
+        "3.1": "Basic 서비스/데이터 배포 및 무허가 수집 금지",
+        "3.3": "company-wide Basic은 회사 내부 lawful business purposes 공유",
+        "6.1": "별도 허용 또는 서면 허가 없는 데이터 등 재사용/배포 제한"
+      },
+      "finding": "현재 외부 공개 Pages 재게시 허용 근거 없음. Pro 계약 원문을 확인하지 않았으므로 Pro의 일률적 금지/허용을 단정하지 않음."
+    },
+    {
+      "name": "GameDiscoverCo historic CSV mention",
+      "url": "https://newsletter.gamediscover.co/p/how-streamers-pick-games-the-splattercat",
+      "published_date": "2021-10-11",
+      "status": "historical_only",
+      "finding": "당시 Plus의 unreleased hype 정보 CSV export를 언급. 현재 Wishlist stock/history CSV 권한·schema·한도 지원 근거로 사용하지 않음."
+    },
+    {
+      "name": "Gamalytic estimation methodology example",
+      "url": "https://gamalytic.com/blog/exploring-steam-wishlist-sale-ratio",
+      "published_date": "2024-04-29",
+      "status": "confirmed_estimates",
+      "finding": "자체 sales/wishlist estimation algorithms 사용을 명시. sales 77%가 30% error 이내라는 자체 평가 및 Wishlist도 유사 정확도라고 설명. Wishlist 실측 전수 또는 Next Fest 7,164개 정확도 보증 아님."
+    },
+    {
+      "name": "VG Insights Wishlist report",
+      "url": "https://vginsights.com/assets/reports/VGI_Wishlist_Report_July_2025.pdf",
+      "status": "confirmed_report_estimates",
+      "page": 4,
+      "finding": "Methodology가 VGI estimations에 의존한다고 명시. 해당 보고서 수치를 경쟁작 정확한 전수 Wishlist 실측으로 취급할 수 없음."
+    },
+    {
+      "name": "Raijin methodology",
+      "url": "https://raijin.gg/methodology",
+      "document_updated_at": "2026-08-05",
+      "status": "confirmed_documented_estimation_method_only",
+      "unit": "estimated game-level Steam Wishlist count, not global census",
+      "finding": "공개 프로필 Wishlist 표본을 coverage ratio로 외삽하고 Steam rank로 제약, follower/review 신호를 보조검사에 사용한다고 명시. 정기 재계산하며 small/new/niche 게임과 공개활동사용자 표본편향 한계를 인정.",
+      "change_causes": [
+        "새 공개 관측과 coverage 변화",
+        "새 calibration 자료와 모델/보정 개선"
+      ],
+      "history_limitation": "모델변경시 sales lifetime curve를 restate하고 수정점을 표시한다고 명시. Wishlist 과거값도 동일 정책으로 변경되는지 구체 보장은 확인되지 않음.",
+      "validation_claim": "개발사 공개값 calibration과 reasonable range라는 업체 자체주장. 문서에서 Wishlist별 독립 검증 오차율/전체게임 정확도 수치는 확인되지 않음.",
+      "live_data_test": false,
+      "unsupported_judgment": "개별 수치를 정답과 대조하지 않았으므로 Raijin 숫자가 엉망이라는 판정은 하지 않음."
+    }
+  ],
+  "local_announcement_examples": [
+    {
+      "app_id": 5223600,
+      "published_at": "2026-10-20T21:19:14Z",
+      "title": "100 wishlists and news about the game engine coming soon!",
+      "source_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1846651706696774",
+      "stored_excerpt": "we reached 100 wishlists today",
+      "classification": "100 도달 마일스톤; 누적 adds/현재 stock 정의 불명",
+      "evidence_limit": "이미 저장된 official_steam_news summary 표본. 원문 전체와 잔액 정의를 새 네트워크 조회하지 않았으며 과거 도달 진술을 현재 실측으로 백필하지 않음."
+    },
+    {
+      "app_id": 4428910,
+      "published_at": "2026-10-20T03:41:07Z",
+      "title": "Slots & Skulls just hit 2,500 wishlists!",
+      "source_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1846651706693576",
+      "stored_excerpt": "Slots & Skulls just passed 2,500 wishlists.",
+      "classification": "2,500 초과 도달 마일스톤; 정확한 현재 잔액 아님",
+      "evidence_limit": "이미 저장된 official_steam_news summary 표본. 원문 전체와 잔액 정의를 새 네트워크 조회하지 않았으며 과거 도달 진술을 현재 실측으로 백필하지 않음."
+    },
+    {
+      "app_id": 5031430,
+      "published_at": "2026-10-18T07:30:11Z",
+      "title": "Next Fest Starts Tomorrow!",
+      "source_url": "https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/1846651706686282",
+      "stored_excerpt": "1,000 wishlists: The Roundabout map. We just passed it",
+      "classification": "1,000 도달 진술; 같은 공지의 2,000/3,500 등은 미래 목표",
+      "evidence_limit": "이미 저장된 official_steam_news summary 표본. 원문 전체와 잔액 정의를 새 네트워크 조회하지 않았으며 과거 도달 진술을 현재 실측으로 백필하지 않음."
+    }
+  ],
+  "remaining_checks_before_any_integration": [
+    "사용자 구독 및 API/MCP/CSV 실제 이용권",
+    "Wishlist balance/history 필드 의미·날짜/갱신주기·제공기간",
+    "7,164개 AppID 대조와 metric별 결측률",
+    "시계열의 모델 변경/보정 여부 및 추정치 오차",
+    "event annotation 원천/매핑/추정 인과와 사실의 구분",
+    "외부 공개 사이트 재배포를 허용하는 실제 Pro 계약 범위",
+    "현재 Wishlist/history CSV 지원 여부와 export schema"
+  ],
+  "integrity_policy_assessment": {
+    "exactness": "원천에 공개되지 않은 경쟁작 전수 Wishlist 실수를 자체 도구로 정확히 재현한다고 보장할 수 없음. 통계모델의 추정과 LLM의 텍스트 생성은 구분하되 어느 쪽도 정확한 실측을 대체하지 못함.",
+    "immutability": "원본 응답·관측시각·source·모델버전을 보존하고 수정본을 별도 version으로 관리하는 것은 설계 가능. 이는 값이 영원히 바뀌지 않거나 기존 전량 원본을 이미 보존했다는 보장이 아님.",
+    "new_observations": "새 시각의 실제 관측값이 변하는 것은 정상. 과거 추정 재산정은 새 관측과 분리해야 함.",
+    "wishlist_data_integration_performed": false,
+    "publication_checks_implemented": [
+      "각 기간의 요약값을 저장된 관측으로 재계산 대조",
+      "마지막 검증 성공 커밋을 evidence-approved 브랜치에 보존하고 모든 실행에서 기존 관측·공지·분석 수정/삭제를 차단. 검증 후 데이터와 기준을 atomic push로 갱신."
+    ],
+    "source_response_limit": "기존 저장본에는 정규화된 관측값·source_url·observed_at이 있으며 원 HTTP 응답 전체나 응답 해시는 보관하지 않았음. 이번 검사는 저장된 관측의 보존과 계산 정합성에 대한 검사이며 Steam 원응답의 무오류 또는 Wishlist 정확성 검증이 아님."
+  }
+}

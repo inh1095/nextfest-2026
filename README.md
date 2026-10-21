@@ -39,6 +39,10 @@ GitHub Actions는 20분 간격으로 실행하도록 설정되어 있습니다. 
 
 팔로워와 위시리스트는 미확보입니다. Community XML 회원 수를 팔로워로 사용하지 않습니다. 초기 검증된 공식 YouTube 영상 3개는 보존하지만 전체 게임의 영상 검색·조회수·스트리머 시청자 수는 자동 수집 범위에 포함하지 않습니다.
 
+타사 전체 게임의 정확한 찜 수는 확인한 공개 경로에서 확보할 수 없습니다. GameDiscoverCo와 Raijin의 찜 수는 추정치이며 이 사이트에는 연결하지 않았습니다. 공개 문서 확인과 실제 데이터 검증을 구분한 출처 검토는 `docs/wishlist-source-audit.json`에 기록했습니다.
+
+게시 전에 모든 게임의 기간별 요약을 관측 기록에서 다시 계산해 대조합니다. `scripts/evidence_guard.py`는 마지막 검증 성공 커밋을 보관하는 `evidence-approved` 브랜치와 비교해 기존 관측·공지·분석의 수정이나 삭제가 있으면 게시를 차단합니다. 검증 실패 후 다음 예약 실행에서도 같은 기준을 사용하며, 기준을 읽지 못하면 중단합니다. 검증을 통과한 데이터 커밋과 기준 브랜치는 하나의 atomic push로 갱신합니다. 새 관측과 수집 상태 갱신은 허용하지만 기존 기록의 값·시각·출처는 보존해야 합니다. 최신값과 최근 6/24시간 통계는 새 관측 및 기간 이동에 따라 달라집니다. 이 검사는 저장된 기록의 보존·계산 정합성을 확인하며 Steam 원천의 무오류나 미확보 찜 수의 정확성을 보장하지 않습니다.
+
 목록 확보, 정상 관측, 공지 확인, 원인 검토는 별도 범위입니다. 수치 증가와 사건의 시간적 연관은 원인 입증이 아닙니다. 검토된 분석만 적용 구간·검토 시각과 함께 보관합니다. Astra가 설계·구현·검토를 맡고 GPT-6.1-SOL이 공식 목록·게임 식별자·최초 관측을 수집합니다. 이후 반복 수집은 Python과 Actions가 수행합니다.
 
 ## 종료
@@ -50,6 +54,7 @@ GitHub Actions는 20분 간격으로 실행하도록 설정되어 있습니다. 
 ```sh
 python3 -m unittest discover -s tests -v
 python3 scripts/validate.py
+python3 scripts/evidence_guard.py --baseline-ref origin/evidence-approved
 node --check site/app.js
 python3 -m http.server 8765 --bind 127.0.0.1 --directory site
 ```

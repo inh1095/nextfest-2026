@@ -3,9 +3,11 @@
 import json
 import re
 from collections import Counter
+from datetime import timedelta
 from pathlib import Path
 from urllib.parse import urlsplit
-from collect import ROOT, load_json, parse
+from collect import ROOT, load_json, parse, stamp
+from fleet import adjacent, range_summary, target_minutes
 
 
 def require(condition, message):
@@ -20,6 +22,42 @@ def url(value):
 
 def signature(value):
     return json.dumps(value, sort_keys=True, ensure_ascii=False, separators=(',', ':'))
+
+
+def require_same_json(actual, expected, message):
+    """Compare JSON values without Python's True == 1 or NaN loopholes."""
+    try:
+        encode = lambda value: json.dumps(value, sort_keys=True, allow_nan=False,
+                                           separators=(',', ':'))
+        equal = encode(actual) == encode(expected)
+    except (TypeError, ValueError):
+        equal = False
+    require(equal, message)
+
+
+def expected_ccu_summary(history, game, config, full_interval, start, end):
+    samples = sorted((s for s in history['samples'] if s['metric'] == 'demo_ccu'),
+                     key=lambda s: s['observed_at'])
+    require(all(parse(s['observed_at']) <= end for s in samples),
+            'sample_after_summary_window')
+    good = [s for s in samples if s['status'] == 'ok']
+    last = samples[-1] if samples else None
+    latest = good[-1] if good else None
+    interval = (int(config['collection']['interval_minutes'])
+                if game['id'] in config['collection'].get('priority_game_ids', [])
+                else full_interval)
+    ranges = {period: range_summary(
+        samples, start if period == 'all' else max(start, end - timedelta(hours=int(period))),
+        end, interval * 2 + 30) for period in ('all', '6', '24')}
+    return {
+        'target_interval_minutes': interval,
+        'status': last['status'] if last else ('pending' if game.get('demo_app_id') else 'unavailable'),
+        'last_attempt_at': last['observed_at'] if last else None,
+        'last_ok_at': latest['observed_at'] if latest else None,
+        'current': latest['value'] if latest else None,
+        'last_error_code': last.get('error_code') if last else None,
+        'ranges': ranges,
+    }, samples
 
 
 def validate_history(data, game_ids, start, stop):
@@ -83,6 +121,11 @@ def validate(root: Path = ROOT):
     catalog = load_json(root / 'site/data/catalog.json')
     summary = load_json(root / 'site/data/summary.json')
     event_index = load_json(root / 'site/data/events-index.json')
+    generated = parse(summary['generated_at'])
+    window_end = min(generated, stop)
+    require(summary['window_end'] == stamp(window_end), 'summary_window_end_mismatch')
+    require(summary['collection_status'] == ('archived' if generated >= stop else
+            'pending' if generated < start else 'active'), 'summary_collection_status_mismatch')
     games = catalog['games']
     ids = {g['id'] for g in games}
     appids = {g['app_id'] for g in games}
@@ -93,7 +136,9 @@ def validate(root: Path = ROOT):
     require(set(g['game_id'] for g in summary['games']) == ids, 'summary_game_set_mismatch')
     require(len(summary['games']) == len(games), 'duplicate_summary_game')
     rows = {g['game_id']: g for g in summary['games']}
-    require(summary['coverage']['catalog_total'] == len(games), 'summary_coverage_mismatch')
+    expected_coverage = dict.fromkeys(summary['coverage'], 0)
+    expected_coverage['catalog_total'] = len(games)
+    full_interval = target_minutes(config, catalog, '__all__')
     all_events, counts, original_signatures = {}, Counter(), {}
     for game in games:
         gid = game['id']
@@ -108,16 +153,43 @@ def validate(root: Path = ROOT):
         validate_history(hist, {gid}, start, stop)
         counts['samples'] += len(hist['samples'])
         counts['events'] += len(hist['events'])
-        good = [s for s in hist['samples'] if s['metric'] == 'demo_ccu' and s['status'] == 'ok']
-        latest = max(good, key=lambda s: s['observed_at']) if good else None
-        require(rows[gid]['current'] == (latest['value'] if latest else None), 'stale_summary_value')
-        require(rows[gid]['last_ok_at'] == (latest['observed_at'] if latest else None), 'stale_summary_time')
+        expected, samples = expected_ccu_summary(hist, game, config, full_interval, start, window_end)
+        for field, value in expected.items():
+            require(field in rows[gid], f'missing_summary_{field}')
+            require_same_json(rows[gid][field], value, f'summary_{field}_mismatch:{gid}')
+        news = hist.get('news_status', {}).get(gid, {})
+        for field, value in {
+            'news_status': news.get('status', 'pending'),
+            'last_news_attempt_at': news.get('last_attempt_at'),
+            'news_all_checked_at': news.get('all_sources_checked_at'),
+            'news_error_codes': news.get('error_codes', []),
+        }.items():
+            require(field in rows[gid], f'missing_summary_{field}')
+            require_same_json(rows[gid][field], value, f'summary_{field}_mismatch:{gid}')
+        facts = {
+            'demo_resolved': bool(demo), 'ccu_attempted': bool(samples),
+            'ccu_ok': expected['current'] is not None,
+            'ccu_pending': expected['status'] == 'pending',
+            'ccu_error': expected['status'] == 'error',
+            'ccu_unavailable': expected['status'] == 'unavailable',
+            'comparison_ready': any(adjacent(a, b, expected['target_interval_minutes'] * 2 + 30)
+                                    is not None for a, b in zip(samples, samples[1:])),
+            'growth_candidate_games': expected['ranges']['all']['positive_intervals'] > 0,
+            'reviewed_games': bool(hist['analyses']),
+            'news_checked': news.get('status') == 'ok',
+            'news_pending': not bool(news.get('last_attempt_at')),
+        }
+        for field, value in facts.items():
+            expected_coverage[field] = expected_coverage.get(field, 0) + int(value)
         require(rows[gid]['history_url'] == f'./data/games/{gid}.json', 'unsafe_history_url')
         for event in hist['events']:
             require(event['id'] not in all_events, 'duplicate_global_event')
             all_events[event['id']] = event
         if gid in {g['id'] for g in config['games']}:
             original_signatures[gid] = {field: set(map(signature, hist[field])) for field in ('samples', 'events', 'analyses')}
+    require_same_json(summary['coverage'], expected_coverage, 'summary_coverage_mismatch')
+    require_same_json(summary['collection'].get('target_cycle_minutes'),
+                      full_interval, 'summary_target_cycle_mismatch')
     require(len(event_index['events']) == len(all_events), 'event_index_count_mismatch')
     require(len({e['id'] for e in event_index['events']}) == len(all_events), 'duplicate_index_event')
     for event in event_index['events']:
