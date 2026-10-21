@@ -95,10 +95,23 @@ def load_page(browser, data=None, *, route='overview', mobile=False, now=NOW):
 
 
 def navigate(page, route):
-    if page.viewport_size['width'] < 721:
-        page.locator('#menu-toggle').click()
-    page.locator('#sidebar a[data-route="'+route+'"]').click()
+    quick = page.locator('.mobile-nav a[data-route="'+route+'"]')
+    if quick.count() and quick.is_visible():
+        quick.click()
+    else:
+        if page.locator('#menu-toggle').is_visible():
+            page.locator('#menu-toggle').click()
+        page.locator('#sidebar a[data-route="'+route+'"]').click()
     page.locator('#route-view[data-page="'+route+'"]').wait_for()
+
+
+def reveal(page, selector):
+    """Reach secondary controls through their visible disclosure, as a user would."""
+    control = page.locator(selector)
+    while control.locator('xpath=ancestor::details[not(@open)]').count():
+        parent = control.locator('xpath=ancestor::details[not(@open)]').first
+        parent.locator('summary').first.click()
+    return control
 
 
 def choose(page, control, gid):
@@ -109,6 +122,13 @@ def choose(page, control, gid):
 
 def width(page):
     assert page.locator('body').evaluate('(e)=>e.scrollWidth') <= page.viewport_size['width']
+
+
+def readable_table(page, selector):
+    """Primary mobile metrics must fit the screen, not just a scroll container."""
+    table = page.locator(selector)
+    assert table.evaluate('(e)=>e.scrollWidth <= e.clientWidth + 1'), selector
+    assert table.evaluate('e => {const r=e.getBoundingClientRect();return r.left>=0 && r.right<=innerWidth+1;}'), selector
 
 
 def screenshot(page,name):
@@ -137,7 +157,7 @@ with sync_playwright() as playwright:
     expect(page.locator('[data-compare-game]')).to_have_count(1)
     assert '데모 미확보' in page.locator('#comparison-table').inner_text()
     page.locator('#catalog-search').fill('')
-    page.locator('#catalog-page-size').select_option('50')
+    reveal(page, '#catalog-page-size').select_option('50')
     expect(page.locator('[data-compare-game]')).to_have_count(50)
     for _ in range(4):
         gid=page.locator('[data-compare-game]:not(:checked):enabled').first.get_attribute('data-compare-game')
@@ -148,10 +168,10 @@ with sync_playwright() as playwright:
     assert len({urlsplit(u).path for u in requests if '/games/' in u})==4
     page.locator('#clear-compare').click()
     page.locator('[data-favorite]').first.click()
-    page.locator('#favorites-only').check()
+    reveal(page, '#favorites-only').check()
     expect(page.locator('[data-favorite]')).to_have_count(1)
     page.reload(wait_until='networkidle')
-    page.locator('#favorites-only').check()
+    reveal(page, '#favorites-only').check()
     expect(page.locator('[data-favorite]')).to_have_count(1)
     screenshot(page,'fleet-desktop-compare.png')
     for route in ('analysis','events','collection'):
@@ -169,7 +189,7 @@ with sync_playwright() as playwright:
     assert page.locator('[data-range="6"]').get_attribute('aria-pressed')=='true'
     page.wait_for_load_state('networkidle')
     with page.expect_download() as download:
-        page.locator('#download-csv').click()
+        reveal(page, '#download-csv').click()
     assert 'lethal-wedding' in Path(download.value.path()).read_text(encoding='utf-8-sig')
     assert not errors,errors
     page.close()
@@ -177,15 +197,29 @@ with sync_playwright() as playwright:
 
     page,errors,_=load_page(browser,fixture(),route='analysis',mobile=True)
     width(page)
+    readable_table(page, '#intervals-table')
     expect(page.locator('[data-interval-id]')).to_have_count(1)
     screenshot(page,'fleet-mobile-analysis.png')
-    for route in ('compare','events','collection'):
+    for route in ('overview','compare','events','collection'):
         navigate(page,route);width(page)
-    page.locator('#menu-toggle').click();page.keyboard.press('Escape')
-    assert page.locator('#menu-toggle').get_attribute('aria-expanded')=='false'
+        readable_table(page, {'overview':'#latest-changes-table','compare':'#comparison-table','events':'#events-table','collection':'#collection-table'}[route])
+        if route == 'compare':
+            first_game = page.locator('#comparison-table .game-name').first
+            assert first_game.bounding_box()['y'] < 640
+            assert first_game.evaluate('e=>parseFloat(getComputedStyle(e).fontSize)') >= 16
+            assert page.locator('#catalog-search').evaluate('e=>parseFloat(getComputedStyle(e).fontSize)') >= 16
+            reveal(page, '#catalog-status').select_option('pending')
+            expect(page.locator('#catalog-status')).to_be_visible()
+            page.locator('#catalog-search').fill('4483570')
+            expect(page.locator('#catalog-status')).to_be_visible()
+            page.locator('#catalog-search').fill('')
+            page.locator('#catalog-status').select_option('all')
+    if page.locator('#menu-toggle').is_visible():
+        page.locator('#menu-toggle').click();page.keyboard.press('Escape')
+        assert page.locator('#menu-toggle').get_attribute('aria-expanded')=='false'
     assert not errors,errors
     page.close()
-    print('PASS 390px menus, analysis and scroll containment')
+    print('PASS 390px: visible metrics without sideways scrolling, readable names, persistent filters and navigation')
 
     page,errors,_=load_page(browser,fixture(),route='analysis')
     expect(page.locator('[data-interval-id]')).to_have_count(1)
@@ -196,7 +230,7 @@ with sync_playwright() as playwright:
     page.locator('[data-related-event="fixture-after"]').click()
     assert '후행' in page.locator('#interval-detail').inner_text()
     screenshot(page,'fleet-desktop-analysis.png')
-    page.locator('#metric-select').select_option('followers')
+    reveal(page, '#metric-select').select_option('followers')
     assert '미확보' in page.locator('#route-view').inner_text()
     assert page.locator('#analysis-chart polyline').count()==0
     assert not errors,errors
@@ -218,8 +252,9 @@ with sync_playwright() as playwright:
     failing=[sample(5,'2026-10-20T08:00:00Z'),sample(None,'2026-10-20T10:00:00Z',status='error')]
     page,errors,_=load_page(browser,fixture(failing),route='analysis')
     expect(page.locator('#samples-table tbody tr')).to_have_count(2)
+    reveal(page, '#samples-table')
     assert '수집 오류' in page.locator('#samples-table').inner_text()
-    with page.expect_download() as download:page.locator('#download-csv').click()
+    with page.expect_download() as download:reveal(page, '#download-csv').click()
     assert 'network_error' in Path(download.value.path()).read_text(encoding='utf-8-sig')
     page.route('**/data/summary.json*',lambda r:r.fulfill(status=503,body='unavailable'))
     page.locator('#refresh-data').click()
@@ -235,7 +270,7 @@ with sync_playwright() as playwright:
     first=page.locator('#comparison-table tbody tr').first
     assert 'Lethal Wedding' in first.inner_text()
     assert first.locator('td').nth(3).locator('.number-main').inner_text()=='0'
-    page.locator('#catalog-status').select_option('pending')
+    reveal(page, '#catalog-status').select_option('pending')
     assert page.locator('#comparison-table tbody tr').first.locator('td').nth(3).inner_text()=='—'
     assert not errors,errors
     page.close()
@@ -267,7 +302,7 @@ with sync_playwright() as playwright:
     events[0]['published_at']='2026-10-19T14:59:00Z'
     events[1]['published_at']='2026-10-19T15:01:00Z'
     page,errors,_=load_page(browser,fixture(events=events),route='events')
-    page.locator('#events-from').fill('2026-10-20');page.locator('#events-to').fill('2026-10-20');page.locator('#events-to').press('Tab')
+    reveal(page, '#events-from').fill('2026-10-20');reveal(page, '#events-to').fill('2026-10-20');page.locator('#events-to').press('Tab')
     expect(page.locator('[data-event-id]')).to_have_count(1)
     assert page.locator('[data-event-id]').get_attribute('data-event-id')=='fixture-after'
     page.locator('#events-search').fill('없는제목')
