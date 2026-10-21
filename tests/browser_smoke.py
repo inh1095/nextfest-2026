@@ -69,7 +69,10 @@ def fixture(samples=None, events=None, now=NOW):
     return {'summary':summary, 'history':history, 'events-index':dict(schema_version=2, generated_at=now, events=events)}
 
 
-def load_page(browser, data=None, *, route='overview', mobile=False, now=NOW):
+def load_page(browser, data=None, *, route='compare', mobile=False, now=NOW):
+    if route.split('?')[0] in ('analysis','compare'):
+        key,value=('metric','demo_ccu') if route.split('?')[0]=='analysis' else ('view','ccu')
+        if key+'=' not in route:route+=('&' if '?' in route else '?')+key+'='+value
     page = browser.new_page(viewport={'width':390 if mobile else 1440,'height':900})
     page.emulate_media(reduced_motion='reduce')
     page.add_init_script('Date.now = () => Date.parse('+json.dumps(now)+');')
@@ -103,6 +106,9 @@ def navigate(page, route):
         if page.locator('#menu-toggle').is_visible():
             page.locator('#menu-toggle').click()
         page.locator('#sidebar a[data-route="'+route+'"]').click()
+    if route in ('analysis','compare'):
+        query='metric=demo_ccu' if route=='analysis' else 'view=ccu'
+        page.evaluate('(q)=>{const p=new URLSearchParams(location.hash.split("?")[1]||"");const [k,v]=q.split("=");p.set(k,v);location.hash=location.hash.split("?")[0]+"?"+p}',query)
     page.locator('#route-view[data-page="'+route+'"]').wait_for()
 
 
@@ -146,7 +152,7 @@ with sync_playwright() as playwright:
     page,errors,requests=load_page(browser)
     width(page)
     assert not any('/games/' in u or 'observations.json' in u for u in requests)
-    assert '7,164' in page.locator('#overview-kpis').inner_text()
+    assert '7,164' in page.locator('#comparison-table').locator('xpath=ancestor::section').inner_text()
     screenshot(page,'fleet-desktop-overview.png')
     navigate(page,'compare')
     expect(page.locator('#comparison-table tbody tr')).to_have_count(25)
@@ -201,7 +207,7 @@ with sync_playwright() as playwright:
     readable_table(page, '#intervals-table')
     expect(page.locator('[data-interval-id]')).to_have_count(1)
     screenshot(page,'fleet-mobile-analysis.png')
-    for route in ('overview','compare','events','collection'):
+    for route in ('compare','events'):
         navigate(page,route);width(page)
         readable_table(page, {'overview':'#latest-changes-table','compare':'#comparison-table','events':'#events-table','collection':'#collection-table'}[route])
         if route == 'compare':
@@ -302,16 +308,16 @@ with sync_playwright() as playwright:
     page.close()
     print('PASS past spikes survive later declines and period filters exclude old peaks')
     page,errors,_=load_page(browser,fixture(historical),route='collection?game=hela&range=6',mobile=True)
-    selected=page.locator('#selected-game-history')
+    selected=reveal(page, '#selected-game-history')
     expect(selected).to_contain_text('마지막 관측 동접')
     expect(selected.locator('.last-observation strong')).to_have_text('10')
     expect(selected).to_contain_text('3건 저장')
     expect(selected).to_contain_text('정상 관측 3회')
     expect(selected).to_contain_text('2026.10.20 03:00 KST')
     expect(selected.locator('.last-observation-time')).to_contain_text('2026.10.20 17:20 KST')
-    expect(page.locator('#collection-cadence')).to_contain_text('화면 새로고침')
-    expect(page.locator('#collection-cadence')).to_contain_text('찜 수치 정기 수집')
-    expect(page.locator('#collection-cadence')).to_contain_text('없음')
+    expect(page.locator('#collection-cadence')).to_contain_text('화면 갱신')
+    expect(page.locator('#collection-cadence')).to_contain_text('찜 공개 수치')
+    expect(page.locator('#wishlist-status')).to_contain_text('정기 수집 없음')
     page.locator('#open-full-history').click()
     expect(page.locator('[data-range="all"]')).to_have_attribute('aria-pressed','true')
     expect(page.locator('#analysis-chart circle')).to_have_count(3)

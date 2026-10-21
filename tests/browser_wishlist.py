@@ -23,8 +23,11 @@ FIXTURE = {
         uncertainty_kind='historical_reference_not_confidence_interval',
         validation_status='not_validated_for_this_event')],
     'mentions': [dict(event_id='fixture-unreviewed', game_id='hela', title='Wishlist news',
-        published_at='2026-10-20T12:00:00Z', source_url='javascript:window.bad=2', quote='20,000 mentioned, not reviewed')],
-    'coverage':dict(disclosure_games=1,disclosures=1,mention_games=1,mentions=1,followers_ok=0,followers_conflict=1),
+        published_at='2026-10-20T12:00:00Z', source_url='javascript:window.bad=2', quote='20,000 mentioned, not reviewed'),
+        dict(event_id='fixture-numeric',game_id='hela',title='100 wishlist target',published_at='2026-10-21T01:00:00Z',source_url='https://example.test/candidate',quote='A target of 100 wishlists')],
+    'candidates':[dict(id='numeric-candidate',event_id='fixture-numeric',game_id='hela',title='100 wishlist target',published_at='2026-10-21T01:00:00Z',quote='A target of 100 wishlists',source_url='https://example.test/candidate',review_status='unreviewed_numeric_mention')],
+    'comparisons':[dict(game_id='hela',previous_disclosure_id=None,latest_disclosure_id='fixture-public',delta=None,percent=None,status='unavailable',reason='insufficient')],
+    'coverage':dict(current_stock_games=0,candidates=1,candidate_games=1,disclosure_games=1,disclosures=1,mention_games=1,mentions=1,followers_ok=0,followers_conflict=1),
 }
 
 
@@ -43,20 +46,39 @@ def open_page(browser, data=FIXTURE, width=390, route='analysis?game=hela&metric
 
 def expand(page,key):
     d=page.locator('[data-wish-disclosure="'+key+'"]')
-    if not d.get_attribute('open'):d.locator('summary').click()
+    if not d.evaluate('(el)=>el.open'):d.locator(':scope > summary').click()
     return d
 
 
 with sync_playwright() as p:
     browser=p.chromium.launch(headless=True)
+    page,errors,requests=open_page(browser,route='overview')
+    expect(page.locator('#wishlist-overview-kpis')).to_contain_text('현재 잔액 확보')
+    expect(page.locator('#wishlist-overview-kpis .kpi-card').last.locator('.kpi-value')).to_contain_text('0')
+    expect(page.locator('#wishlist-latest-reviews')).to_contain_text('100,000개 초과')
+    expect(page.locator('#wishlist-candidates')).to_contain_text('미검토')
+    assert page.locator('#latest-changes-table').count()==0
+    assert not any('/games/' in u for u in requests)
+    page.locator('.mobile-nav [data-route="analysis"]').click()
+    expect(page.locator('#metric-select')).to_have_value('wishlists')
+    expect(page.locator('#wishlist-change')).to_contain_text('증가량 미확인')
+    expect(page.locator('#wishlist-candidates')).to_contain_text('100 wishlist target')
+    assert page.locator('#analysis-chart').count()==0
+    expand(page,'wish-mentions-hela')
+    assert '100 wishlist target' not in page.locator('[data-wish-disclosure="wish-mentions-hela"]').inner_text()
+    assert not errors,errors
+    page.close()
+    print('PASS wishlist-first overview/default navigation, candidates separate from announcements, no CCU ranking')
+
     page,errors,requests=open_page(browser)
-    expect(page.locator('#wishlist-disclosures')).to_contain_text('100,000 초과')
+    expect(page.locator('#wishlist-disclosures')).to_contain_text('100,000개 초과')
     expect(page.locator('#wishlist-disclosures')).to_contain_text('현재 잔액 미확보')
     expect(page.locator('#wishlist-disclosures')).to_contain_text('2026.10.20 · 시각 미확인')
-    assert not any('/games/' in u for u in requests), 'wishlist mode must not load CCU histories'
+    assert all('/games/hela.json' in u for u in requests if '/games/' in u), 'only selected game history loads for contextual sources'
     expand(page,'disclosure-fixture-public')
     assert page.locator('#wishlist-disclosures img').count()==0
     assert page.evaluate('window.bad||null') is None
+    expand(page,'followers-panel')
     expect(page.locator('#wishlist-followers')).to_contain_text('출처 불일치')
     expand(page,'wish-calculator')
     expect(page.locator('#wish-followers')).to_have_value('')
@@ -109,19 +131,24 @@ with sync_playwright() as p:
     ]:
         data=copy.deepcopy(FIXTURE);data['follower_checks']=checks
         page,errors,_=open_page(browser,data=data)
+        expand(page,'followers-panel')
         expect(page.locator('#wishlist-followers .card-header .badge')).to_have_text(expected_badge)
         expect(page.locator('.wish-follower-record').first).to_contain_text(expected_first)
         assert not errors,errors
         page.close()
     print('PASS latest follower badge uses observed/verified/window time and deterministic ID tie-break')
 
-    page,errors,_=open_page(browser,route='compare?view=wishlists')
+    page,errors,_=open_page(browser,route='compare')
     expect(page.locator('#wishlist-catalog')).to_contain_text('Hela')
     assert page.locator('#catalog-sort').count()==0
+    expect(page.locator('.wish-game-list>li')).to_have_count(25)
+    page.locator('#wish-evidence-filter').select_option('reviewed')
+    expect(page.locator('.wish-game-list>li')).to_have_count(1)
+    page.locator('#wish-evidence-filter').select_option('all')
     page.locator('#catalog-search').fill('nothing matches')
     expect(page.locator('#wishlist-catalog')).to_contain_text('조건에 맞는')
     page.locator('#catalog-search').fill('Hela')
-    page.locator('#wishlist-catalog a.button').click()
+    page.locator('#wishlist-catalog a.button[href*="game=hela&"]').click()
     expect(page.locator('#metric-select')).to_have_value('wishlists')
     page.locator('#metric-select').select_option('demo_ccu')
     expect(page.locator('#analysis-chart')).to_be_visible()
@@ -134,13 +161,16 @@ with sync_playwright() as p:
         'value':50000,'operator':'gte','stock_definition':'lifetime_adds','platform_scope':'steam'},
         {**original,'id':'fixture-period','published_at':'2026-10-21T01:00:00Z',
          'value':500,'operator':'approx','kind':'period_additions','stock_definition':'period_adds'}]
+    timeline['comparisons']=[dict(game_id='hela',latest_disclosure_id='fixture-period',previous_disclosure_id='fixture-public',status='unavailable',delta=None,percent=None)]
     page,errors,_=open_page(browser,data=timeline)
     expect(page.locator('.wish-timeline > li')).to_have_count(3)
     items=page.locator('.wish-timeline > li')
-    expect(items.nth(0)).to_contain_text('50,000 이상')
-    expect(items.nth(1)).to_contain_text('100,000 초과')
-    expect(items.nth(2)).to_contain_text('약 500')
+    expect(items.nth(0)).to_contain_text('50,000개 이상')
+    expect(items.nth(1)).to_contain_text('100,000개 초과')
+    expect(items.nth(2)).to_contain_text('약 500개')
     expect(items.nth(2)).to_contain_text('기간 추가')
+    expect(page.locator('#wishlist-current')).to_contain_text('약 500개')
+    expect(page.locator('#wishlist-change')).to_contain_text('증가량 미확인')
     expect(page.locator('#wishlist-disclosures')).to_contain_text('실제 찜 잔액 추이 미확보')
     expect(page.locator('#wishlist-disclosures')).to_contain_text('정기 수집 없음')
     assert page.locator('#wishlist-disclosures svg').count()==0
@@ -148,6 +178,35 @@ with sync_playwright() as p:
     page.close()
     print('PASS disclosure timeline preserves date/operator/definition without inventing a wishlist trend')
 
+
+    representatives=copy.deepcopy(FIXTURE)
+    base=representatives['disclosures'][0]
+    representatives['disclosures']=[
+        {**base,'id':'old-stock','value':50000,'published_at':'2026-09-01','operator':'gte'},
+        {**base,'id':'latest-total','value':100000,'published_at':'2026-10-20T12:00:00Z','operator':'gte'},
+        {**base,'id':'latest-period','value':5000,'published_at':'2026-10-20T12:00:00Z',
+            'kind':'period_additions','stock_definition':'period_adds','operator':'eq'},
+    ]
+    representatives['comparisons']=[dict(game_id='hela',latest_disclosure_id='latest-total',
+        previous_disclosure_id='old-stock',delta=None,percent=None,status='unavailable',publication_order_ambiguous=True)]
+    page,errors,_=open_page(browser,data=representatives)
+    expect(page.locator('#wishlist-current .wish-record-heading strong')).to_have_text('100,000개 이상')
+    expect(page.locator('#wishlist-current .wish-previous strong')).to_have_text('50,000개 이상')
+    expect(page.locator('#wishlist-current')).to_contain_text('선후 미확인')
+    expect(page.locator('#wishlist-change')).to_contain_text('증가량 미확인')
+    expect(page.locator('.wish-timeline > li')).to_have_count(3)
+    assert not errors,errors
+    page.close()
+    page,errors,_=open_page(browser,data=representatives,route='compare?view=wishlists&evidence=reviewed')
+    expect(page.locator('#wishlist-catalog .wish-list-value strong')).to_have_text('100,000개 이상')
+    expect(page.locator('#wish-evidence-filter')).to_have_value('reviewed')
+    page.locator('#wish-evidence-filter').select_option('candidate')
+    assert 'evidence=candidate' in page.url
+    page.reload(wait_until='networkidle')
+    expect(page.locator('#wish-evidence-filter')).to_have_value('candidate')
+    assert not errors,errors
+    page.close()
+    print('PASS backend representative IDs prevent period additions becoming stock; evidence filters survive reload')
 
     for data in [None,{**copy.deepcopy(FIXTURE),'methods':[]}]:
         page,errors,_=open_page(browser,data=data)

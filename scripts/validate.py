@@ -8,7 +8,7 @@ from pathlib import Path
 from urllib.parse import urlsplit
 from collect import ROOT, load_json, parse, stamp
 from fleet import (adjacent, range_summary, target_minutes, observation_history,
-                   news_history, collection_metadata)
+                   news_history, collection_metadata, ccu_enabled)
 from wishlist import build_index as build_wishlist_index
 
 
@@ -52,6 +52,7 @@ def expected_ccu_summary(history, game, config, full_interval, start, end):
         samples, start if period == 'all' else max(start, end - timedelta(hours=int(period))),
         end, interval * 2 + 30) for period in ('all', '6', '24')}
     return {
+        'ccu_collection_enabled': ccu_enabled(config),
         'target_interval_minutes': interval,
         'status': last['status'] if last else ('pending' if game.get('demo_app_id') else 'unavailable'),
         'last_attempt_at': last['observed_at'] if last else None,

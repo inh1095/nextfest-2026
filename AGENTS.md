@@ -1,6 +1,9 @@
 # Next Fest 2026
 
 - Public static research site for `inh1095/nextfest-2026`.
+- Wishlist evidence is the primary product. Default pages show reviewed publisher claims, prior statements, unreviewed numeric mentions and source events; CCU is a historical auxiliary view only.
+- The user explicitly stopped automatic CCU collection on 2026-10-21. Honor `collection.ccu_enabled=false` in every collection mode and preserve all existing CCU records. Do not restart it without a new user request.
+- A numeric wishlist mention is a review candidate, not a confirmed count. Never automatically promote keyword matches, future targets or giveaway thresholds to reviewed disclosures.
 - Preserve observations. Missing or failed readings are null, never zero.
 - Steam base and demo AppIDs must remain separate.
 - Only label a count as followers when the official app-group mapping and count are verified. Conflicting source counts stay null.

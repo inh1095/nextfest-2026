@@ -46,6 +46,30 @@ def read_state(root):
     }
 
 
+def ccu_enabled(config):
+    enabled = config['collection'].get('ccu_enabled', True)
+    if type(enabled) is not bool:
+        raise ValueError('ccu_enabled_must_be_boolean')
+    return enabled
+
+
+def request_limits(config, catalog, mode=None, full=False):
+    settings = config['collection']
+    mode = mode or settings.get('default_mode', 'both')
+    if mode not in {'ccu', 'news', 'both'}:
+        raise ValueError('invalid_collection_mode')
+    mapped = sum(bool(g.get('demo_app_id')) for g in catalog['games'])
+    sources = sum(len(set(filter(None, [g['app_id'], g.get('demo_app_id')])))
+                  for g in catalog['games'])
+    ccu = mapped * 2 if full else settings['ccu_request_budget']
+    news = sources * 2 if full else settings['news_request_budget']
+    if not ccu_enabled(config) or mode == 'news':
+        ccu = 0
+    if mode == 'ccu':
+        news = 0
+    return ccu, news
+
+
 def collection_due(config, state, now=None):
     """Workflow-level concurrency makes this check precede any reservation."""
     now = now or datetime.now(UTC)
@@ -250,6 +274,8 @@ def collection_metadata(config, catalog):
             'news_target_cycle_minutes': (math.ceil(sources / budget) * settings['interval_minutes']
                                           if budget > 0 else None),
             'cadence_basis': 'configured_budget_rotation_not_guaranteed',
+            'ccu_collection': {'enabled': ccu_enabled(config),
+                               'mode': 'scheduled' if ccu_enabled(config) else 'stopped_preserved_history'},
             'wishlist_numeric_collection': {'mode': 'reviewed_disclosures_only',
                                             'scheduled': False,
                                             'target_interval_minutes': None}}
@@ -287,6 +313,7 @@ def build_indexes(root, config=None, catalog=None, now=None):
                                     end, interval * 2 + 30) for key in ("all", "6", "24")}
         news = history.get("news_status", {}).get(gid, {})
         collected.append({"game_id": gid, "target_interval_minutes": interval, "status": status,
+                          "ccu_collection_enabled": ccu_enabled(config),
                           "last_attempt_at": last["observed_at"] if last else None,
                           "last_ok_at": latest["observed_at"] if latest else None,
                           "current": latest["value"] if latest else None,
@@ -340,7 +367,7 @@ def rotated(items, cursor):
     return items[at:] + items[:at]
 
 
-def collect_fleet(root, *, full=False, mode="both", run_id=None, spacing=None,
+def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
                   max_seconds=840, client_factory=Client, missing_only=False):
     global ACTIVE_CLIENT
     config = load_json(root / "config/manifest.json")
@@ -353,13 +380,10 @@ def collect_fleet(root, *, full=False, mode="both", run_id=None, spacing=None,
     run_id = run_id or "local-" + uuid.uuid4().hex
     games = catalog["games"]
     mapped = [g for g in games if g.get("demo_app_id")]
-    ccu_limit = len(mapped) * 2 if full else settings["ccu_request_budget"]
     news_sources = [(g, app) for g in games for app in dict.fromkeys(filter(None, [g["app_id"], g.get("demo_app_id")]))]
-    news_limit = len(news_sources) * 2 if full else settings["news_request_budget"]
-    if mode == "news":
-        ccu_limit = 0
-    if mode == "ccu":
-        news_limit = 0
+    ccu_limit, news_limit = request_limits(config, catalog, mode, full)
+    if not ccu_limit and not news_limit:
+        return build_indexes(root, config, catalog, now)
     lease = reserve(root, config, run_id, ccu_limit + news_limit)
     state = read_state(root)
     if lease["completed"]:
@@ -391,6 +415,8 @@ def collect_fleet(root, *, full=False, mode="both", run_id=None, spacing=None,
         save(history_path(root, gid), hist)
 
     def observe(game):
+        if not ccu_enabled(config):
+            return 'skip'
         gid = game["id"]
         hist = get_history(gid)
         if missing_only and any(s["metric"] == "demo_ccu" for s in hist["samples"]):
@@ -510,7 +536,7 @@ def main():
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--full", action="store_true")
     parser.add_argument("--missing-only", action="store_true")
-    parser.add_argument("--mode", choices=["ccu", "news", "both"], default="both")
+    parser.add_argument("--mode", choices=["ccu", "news", "both"])
     parser.add_argument("--run-id")
     parser.add_argument("--spacing", type=float)
     parser.add_argument("--max-seconds", type=int, default=840)
@@ -529,8 +555,9 @@ def main():
     if args.reserve_only:
         if not args.run_id:
             parser.error("--reserve-only requires --run-id")
-        lease = reserve(args.root, config, args.run_id,
-                        config["collection"]["ccu_request_budget"] + config["collection"]["news_request_budget"])
+        catalog = load_json(args.root / 'site/data/catalog.json')
+        ccu_limit, news_limit = request_limits(config, catalog, args.mode, args.full)
+        lease = reserve(args.root, config, args.run_id, ccu_limit + news_limit)
         print(json.dumps(lease))
         return
     summary = (build_indexes(args.root) if args.build_only else

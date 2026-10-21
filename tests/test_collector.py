@@ -32,6 +32,20 @@ def fake_fetch(url):
 
 
 class CollectorTests(unittest.TestCase):
+    def test_legacy_cannot_collect_production_or_restart_disabled_ccu(self):
+        for updates in ({"schema_version": 2}, {"schema_version": 1, "ccu_enabled": False}):
+            config = copy.deepcopy(CONFIG)
+            config["schema_version"] = updates["schema_version"]
+            if "ccu_enabled" in updates:
+                config["collection"]["ccu_enabled"] = updates["ccu_enabled"]
+            data = {"samples": [{"original": True}], "events": []}
+            before = copy.deepcopy(data)
+            calls = []
+            with self.subTest(updates=updates), self.assertRaisesRegex(ValueError, "legacy_collector_disabled"):
+                collect(config, data, now=NOW, fetch=lambda url: calls.append(url))
+            self.assertEqual(calls, [])
+            self.assertEqual(data, before)
+
     def test_real_zero_and_unavailable_are_distinct(self):
         data = collect(CONFIG, {}, now=NOW, fetch=fake_fetch)
         self.assertEqual(data["samples"][0]["value"], 0)

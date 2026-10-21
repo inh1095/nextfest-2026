@@ -156,6 +156,8 @@ def sample_slot(sample: dict, interval_seconds: int) -> int:
 
 
 def collect(config: dict, data: dict, *, now: datetime | None = None, fetch=fetch_json) -> dict:
+    if config.get("schema_version", 1) != 1 or config["collection"].get("ccu_enabled", True) is not True:
+        raise ValueError("legacy_collector_disabled_use_fleet")
     fixed_clock = now is not None
     now = now or datetime.now(UTC)
     observed = stamp(now)

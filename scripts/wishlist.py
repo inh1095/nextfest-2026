@@ -11,9 +11,18 @@ from datetime import date
 from pathlib import Path
 from urllib.parse import urlsplit
 
-from collect import load_json, parse, plain_text, stamp
+from collect import UTC, load_json, parse, plain_text, stamp
 
 KEYWORDS = re.compile(r'wish\s*lists?|위시리스트|위시\s*리스트|찜', re.I)
+# Phrase recognition only: quantities are never parsed or stored as measured values.
+# A number must end in a digit/unit, never the sentence-ending dot in "6. Wishlist".
+QUANTITY = r'(?<![\w.,$€£¥])(?:\d+(?:[,.]\d+)*(?:\s?[kKmM]|\s+(?:thousand|million))?|(?:(?:one|two|three|four|five|six|seven|eight|nine|ten)\s+)?(?:hundred|thousand|million))'
+QUANTITY_PHRASE = re.compile(
+    rf'(?:{QUANTITY}\s+(?:Steam\s+)?wish\s*lists\b(?!\s+(?:rank|ranking|chart|position)\b)'
+    rf'|\bwish\s*list\s+count\s*[:=]?\s*{QUANTITY}'
+    rf'|{QUANTITY}\s+(?:people|players)\s+(?:have\s+)?wishlisted\b'
+    rf'|{QUANTITY}\s*(?:명|개)(?:이|의|가)?\s*(?:위시\s*리스트|찜)'
+    rf'|(?:위시\s*리스트|찜)\s*(?:수|수치)\s*[:=]?\s*{QUANTITY})', re.I)
 DISCLOSURE_FIELDS = ('id', 'game_id', 'app_id', 'event_id', 'published_at', 'value',
                      'kind', 'operator', 'stock_definition', 'quote', 'source_url',
                      'verified_at', 'usable_as_current_stock', 'as_of')
@@ -187,6 +196,85 @@ def mentions_from_events(events, catalog):
     return sorted(mentions.values(), key=lambda e: (e['published_at'] or '', e['event_id']), reverse=True)
 
 
+def candidates_from_events(events, mentions, disclosures):
+    """Queue direct quantity phrases for review, including unconfirmed goals."""
+    reviewed = {d['event_id'] for d in disclosures if d['event_id']}
+    by_id = {e['id']: e for e in events}
+    candidates = []
+    for mention in mentions:
+        if mention['event_id'] in reviewed:
+            continue
+        event = by_id[mention['event_id']]
+        # Only collected official news is a candidate; videos remain ordinary evidence.
+        if event.get('kind', 'announcement') not in {'announcement', 'update'}:
+            continue
+        # Never join title ending in a number with a body beginning "Wishlist".
+        for field, limit in [('summary', 10000), ('title', 250)]:
+            content = plain_text(event.get(field, ''), limit)
+            match = QUANTITY_PHRASE.search(content)
+            if not match:
+                continue
+            begin = max(0, match.start() - 80)
+            candidates.append({'id': 'candidate-' + mention['event_id'], **mention,
+                               'quote': content[begin:begin + 280],
+                               'matched_phrase_kind': 'quantity_phrase',
+                               'review_status': 'unreviewed_numeric_mention'})
+            break
+    return candidates
+
+
+def disclosure_comparisons(disclosures):
+    """Compare only explicit, time-aligned reported Steam balances, never lower bounds."""
+    def day(record):
+        at = record['published_at']
+        return date.fromisoformat(at) if len(at) == 10 else parse(at).astimezone(UTC).date()
+
+    def earlier(a, b):
+        # A date-only publication has no inferred ordering within its calendar day.
+        if len(a['published_at']) == 10 or len(b['published_at']) == 10:
+            return day(a) < day(b)
+        return parse(a['published_at']) < parse(b['published_at'])
+
+    def representative(records):
+        latest_day = max(map(day, records))
+        cohort = [r for r in records if day(r) == latest_day]
+        if not any(len(r['published_at']) == 10 for r in cohort):
+            latest_time = max(parse(r['published_at']) for r in cohort)
+            cohort = [r for r in cohort if parse(r['published_at']) == latest_time]
+        # A period addition is a separate statement, never the headline stock/milestone.
+        def priority(r):
+            period = r['kind'] == 'period_additions' or r['stock_definition'] == 'period_adds'
+            return (period, r['stock_definition'] != 'balance', r['id'])
+        ambiguous = len({r['source_url'] for r in cohort}) > 1
+        return min(cohort, key=priority), ambiguous
+
+    grouped = {}
+    for disclosure in disclosures:
+        grouped.setdefault(disclosure['game_id'], []).append(disclosure)
+    comparisons = []
+    for gid, records in sorted(grouped.items()):
+        latest, ambiguous = representative(records)
+        prior = [r for r in records if earlier(r, latest) and
+                 r['source_url'] != latest['source_url'] and
+                 not (r['event_id'] and r['event_id'] == latest['event_id'])]
+        previous, previous_ambiguous = representative(prior) if prior else (None, False)
+        row = {'game_id': gid, 'previous_disclosure_id': previous['id'] if previous else None,
+               'latest_disclosure_id': latest['id'], 'delta': None, 'percent': None,
+               'publication_order_ambiguous': ambiguous or previous_ambiguous,
+               'status': 'unavailable', 'reason': 'two_comparable_balances_required'}
+        eligible = previous is not None and not row['publication_order_ambiguous'] and all(
+            d['platform_scope'] == 'steam' and d['stock_definition'] == 'balance' and
+            d['operator'] == 'eq' and d['kind'] == 'reported_count' and d['as_of'] and
+            'T' in d['as_of'] for d in (previous, latest))
+        if eligible and parse(previous['as_of']) < parse(latest['as_of']):
+            delta = latest['value'] - previous['value']
+            row.update(delta=delta, percent=delta / previous['value'] * 100 if previous['value'] else None,
+                       status='reported_balance_difference', reason=None,
+                       from_as_of=previous['as_of'], to_as_of=latest['as_of'])
+        comparisons.append(row)
+    return comparisons
+
+
 def build_index(root: Path, catalog, now, *, events=None):
     """Return a deterministic public index; callers own writes. No network calls."""
     now = parse(stamp(now))
@@ -201,6 +289,7 @@ def build_index(root: Path, catalog, now, *, events=None):
     normalized = normalize_source(source, catalog, now, events)
     mentions = mentions_from_events(events, catalog)
     disclosures, followers = normalized['disclosures'], normalized['follower_checks']
+    candidates = candidates_from_events(events, mentions, disclosures)
     # Multiple immutable checks may exist. Coverage describes each game's latest check.
     latest = {}
     def check_time(row):
@@ -211,9 +300,13 @@ def build_index(root: Path, catalog, now, *, events=None):
     for row in sorted(followers, key=lambda r: (check_time(r), r['id'])):
         latest[row['game_id']] = row
     return {'schema_version': 1, 'generated_at': stamp(now), **normalized, 'mentions': mentions,
+            'candidates': candidates, 'comparisons': disclosure_comparisons(disclosures),
             'coverage': {'disclosure_games': len({r['game_id'] for r in disclosures}),
                          'disclosures': len(disclosures),
                          'mention_games': len({r['game_id'] for r in mentions}),
                          'mentions': len(mentions),
+                         'candidate_games': len({r['game_id'] for r in candidates}),
+                         'candidates': len(candidates),
+                         'current_stock_games': 0,
                          'followers_ok': sum(r['status'] == 'ok' for r in latest.values()),
                          'followers_conflict': sum(r['status'] == 'conflict' for r in latest.values())}}

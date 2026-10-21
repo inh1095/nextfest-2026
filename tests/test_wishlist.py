@@ -9,7 +9,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'scripts'))
 from collect import UTC
 from fleet import save
-from wishlist import build_index
+from wishlist import build_index, disclosure_comparisons
 
 
 class WishlistTests(unittest.TestCase):
@@ -66,6 +66,7 @@ class WishlistTests(unittest.TestCase):
         index = self.build()
         self.assertEqual(index['coverage'], {'disclosure_games': 1, 'disclosures': 1,
                                             'mention_games': 1, 'mentions': 1,
+                                            'candidate_games': 0, 'candidates': 0, 'current_stock_games': 0,
                                             'followers_ok': 0, 'followers_conflict': 1})
         self.assertIsNone(index['follower_checks'][0]['value'])
         self.assertFalse(index['disclosures'][0]['usable_as_current_stock'])
@@ -175,6 +176,122 @@ class WishlistTests(unittest.TestCase):
         self.assertEqual(second['disclosures'], first['disclosures'])
         self.assertEqual(second['coverage']['mentions'], 2)
         self.assertNotIn('value', second['mentions'][0])
+
+    def test_numeric_review_queue_never_extracts_values_or_promotes_goals(self):
+        self.events[1].update(title='Wishlist goal', summary='If we reach 10000 wishlists, we will add a level.')
+        result = self.build()
+        self.assertEqual(len(result['candidates']), 1)
+        candidate = result['candidates'][0]
+        self.assertEqual(candidate['event_id'], 'news-b')
+        self.assertEqual(candidate['review_status'], 'unreviewed_numeric_mention')
+        self.assertIn('If we reach', candidate['quote'])
+        self.assertNotIn('value', candidate)
+        self.assertEqual(result['coverage']['disclosures'], 1)
+        self.assertEqual(result['coverage']['current_stock_games'], 0)
+        self.events[1].update(title='Please wishlist', summary='Thank you for your support')
+        result = self.build()
+        self.assertEqual(result['candidates'], [])
+        self.assertEqual(result['coverage']['mentions'], 2)
+
+    def test_numbers_after_a_second_keyword_are_queued_without_mutating_evidence(self):
+        self.events[1].update(title='Wishlist our game', summary='Support us. ' * 40 + 'We reached 20,000 wishlists!')
+        before = copy.deepcopy(self.events)
+        result = self.build()
+        self.assertEqual(result['candidates'][0]['event_id'], 'news-b')
+        self.assertIn('20,000', result['candidates'][0]['quote'])
+        self.assertEqual(self.events, before)
+
+    def test_dates_game_names_versions_and_other_metrics_are_not_quantity_candidates(self):
+        cases = [('Launch date', 'Coming November 6. Wishlist our game!'),
+                 ('Launch date', 'Coming November 6.Wishlist our game!'),
+                 ('Wishlist Vanakan 405', 'Wishlist now!'),
+                 ('Vanakan 405', 'Wishlist our game!'),
+                 ('Patch v1.0', 'Wishlist now! 400,000 downloads and 100 CCU.'),
+                 ('Steam ranking', 'Top 1000 wishlists ranking. Wishlist now!'),
+                 ('Sale', 'Only $10. Wishlist now!')]
+        for title, summary in cases:
+            with self.subTest(title=title, summary=summary):
+                self.events[1].update(title=title, summary=summary)
+                result = self.build()
+                self.assertEqual(result['candidates'], [])
+                self.assertEqual(result['coverage']['mentions'], 2)
+
+    def test_mixed_milestone_period_and_future_goal_remain_one_unreviewed_snippet(self):
+        self.events[1].update(title='Worm Capitalist update', summary=(
+            'We passed 500 wishlists. Since demo launch we gained around 200 wishlists. '
+            'Next goal: 1000 wishlists.'))
+        before = copy.deepcopy(self.events)
+        result = self.build()
+        self.assertEqual(len(result['candidates']), 1)
+        candidate = result['candidates'][0]
+        self.assertEqual(candidate['matched_phrase_kind'], 'quantity_phrase')
+        self.assertEqual(candidate['quote'], self.events[1]['summary'])
+        self.assertEqual(candidate['review_status'], 'unreviewed_numeric_mention')
+        self.assertFalse({'value', 'delta', 'total', 'count'} & candidate.keys())
+        self.assertEqual(result['coverage']['disclosures'], 1)
+        self.assertEqual(self.events, before)
+
+    def test_narrow_quantity_forms_are_recognized_without_parsing(self):
+        for text in ('We reached 1,000 Steam wishlists!', 'Wishlist count: 1000',
+                     'One thousand wishlists!', '1000명이 위시리스트에 추가했습니다.',
+                     '20,000 people have wishlisted our game.'):
+            with self.subTest(text=text):
+                self.events[1].update(title='News', summary=text)
+                self.assertEqual(len(self.build()['candidates']), 1)
+
+    def test_lower_bounds_dates_platforms_and_unspecified_stocks_never_produce_growth(self):
+        base = copy.deepcopy(self.source['disclosures'][0])
+        base.update(platform_scope='steam', kind='reported_count', operator='eq',
+                    stock_definition='balance', as_of='2026-10-20T09:00:00Z')
+        latest = copy.deepcopy(base)
+        latest.update(id='later', published_at='2026-10-21T09:00:00Z',
+                      as_of='2026-10-21T08:00:00Z', value=12000,
+                      event_id='later-event', source_url='https://example.com/later')
+        for field, value in [('operator', 'gte'), ('operator', 'approx'),
+                             ('stock_definition', 'unspecified'), ('platform_scope', 'unspecified'),
+                             ('as_of', None), ('as_of', '2026-10-20'),
+                             ('as_of', base['as_of']), ('as_of', '2026-10-19T09:00:00Z')]:
+            with self.subTest(field=field, value=value):
+                changed = dict(latest, **{field: value})
+                row = disclosure_comparisons([base, changed])[0]
+                self.assertEqual(row['status'], 'unavailable')
+                self.assertIsNone(row['delta'])
+                self.assertIsNone(row['percent'])
+        rows = disclosure_comparisons([base, dict(latest, game_id='b')])
+        self.assertTrue(all(r['delta'] is None for r in rows))
+        row = disclosure_comparisons([latest, base])[0]
+        self.assertEqual(row['delta'], 2000)
+        self.assertEqual(row['percent'], 20)
+        self.assertEqual(row['status'], 'reported_balance_difference')
+        self.assertIsNone(disclosure_comparisons([dict(base, value=0), latest])[0]['percent'])
+
+    def test_same_announcement_period_statement_is_not_a_previous_publication(self):
+        milestone = dict(self.source['disclosures'][0], platform_scope='steam')
+        period = dict(milestone, id='z-period', kind='period_additions',
+                      stock_definition='period_adds', value=200, operator='approx')
+        previous = dict(milestone, id='previous', event_id='previous-event',
+                        source_url='https://example.com/previous', published_at='2026-10-19T10:00:00Z')
+        before = copy.deepcopy([milestone, period, previous])
+        row = disclosure_comparisons([period, milestone, previous])[0]
+        self.assertEqual(row['latest_disclosure_id'], milestone['id'])
+        self.assertEqual(row['previous_disclosure_id'], 'previous')
+        self.assertIsNone(row['delta'])
+        self.assertEqual([milestone, period, previous], before)
+        # The same article with another timestamp/statement is still not another publication.
+        duplicate = dict(milestone, id='older-statement', published_at='2026-10-18T10:00:00Z')
+        self.assertIsNone(disclosure_comparisons([milestone, period, duplicate])[0]['previous_disclosure_id'])
+
+    def test_date_only_same_day_does_not_infer_an_earlier_publication(self):
+        base = dict(self.source['disclosures'][0], platform_scope='steam', published_at='2026-10-20')
+        timed = dict(base, id='timed', event_id='timed-event',
+                     source_url='https://example.com/timed', published_at='2026-10-20T23:00:00Z')
+        previous = dict(base, id='previous-day', event_id='previous-event',
+                        source_url='https://example.com/previous', published_at='2026-10-19')
+        row = disclosure_comparisons([timed, base, previous])[0]
+        self.assertTrue(row['publication_order_ambiguous'])
+        self.assertEqual(row['previous_disclosure_id'], 'previous-day')
+        self.assertIsNone(row['delta'])
+        self.assertIsNone(disclosure_comparisons([base, timed])[0]['previous_disclosure_id'])
 
 
 if __name__ == '__main__':
