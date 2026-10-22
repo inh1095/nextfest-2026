@@ -31,7 +31,7 @@ FIXTURE = {
 }
 
 
-def open_page(browser, data=FIXTURE, width=390, route='analysis?game=hela&metric=wishlists'):
+def open_page(browser, data=FIXTURE, width=390, route='analysis?game=hela&metric=wishlists', catalog=None):
     page=browser.new_page(viewport={'width':width,'height':844})
     errors=[];requests=[]
     page.on('pageerror',lambda e:errors.append(str(e)))
@@ -40,6 +40,7 @@ def open_page(browser, data=FIXTURE, width=390, route='analysis?game=hela&metric
         if data is None:r.fulfill(status=404,body='not found')
         else:r.fulfill(content_type='application/json',body=json.dumps(data,ensure_ascii=False))
     page.route('**/data/wishlists.json*',response)
+    if catalog is not None:page.route('**/data/catalog.json*',lambda r:r.fulfill(content_type='application/json',body=json.dumps(catalog,ensure_ascii=False)))
     page.goto(BASE.rstrip('/')+'/#/'+route,wait_until='networkidle')
     return page,errors,requests
 
@@ -302,4 +303,47 @@ with sync_playwright() as p:
     assert not errors,errors
     page.close()
     print('PASS multi-metric ledger: bounded rows, keyboard expansion, one lazy history, all-range preview, semantics, filters and sort')
+    catalog=json.loads((Path(__file__).resolve().parents[1]/'site/data/catalog.json').read_text())
+    catalog['games']=[g for g in catalog['games'] if g['id'] in ('hela','lethal-wedding','steam-4483570')]
+    ordering=copy.deepcopy(FIXTURE);base=ordering['disclosures'][0]
+    ordering['disclosures']=[{**base,'id':'hela-representative','published_at':'2026-10-01'},
+        {**base,'id':'hela-later-period','published_at':'2026-10-21','kind':'period_additions','stock_definition':'period_adds'},
+        {**base,'id':'lethal-representative','game_id':'lethal-wedding','app_id':4624120,'published_at':'2026-10-10'}]
+    ordering['comparisons']=[dict(game_id='hela',latest_disclosure_id='hela-representative',previous_disclosure_id=None,status='unavailable'),
+        dict(game_id='lethal-wedding',latest_disclosure_id='lethal-representative',previous_disclosure_id=None,status='unavailable')]
+    def row_ids(page):return page.locator('.ledger-entry').evaluate_all('(els)=>els.map(e=>e.dataset.ledgerGame)')
+    page,errors,_=open_page(browser,data=ordering,catalog=catalog,width=1440,route='compare')
+    assert row_ids(page)==['lethal-wedding','hela','steam-4483570']
+    page.locator('#ledger-header-reviewed').focus();page.keyboard.press('Enter')
+    assert row_ids(page)==['hela','lethal-wedding','steam-4483570']
+    assert 'evidence_dir=asc' in page.url
+    expect(page.locator('#ledger-direction')).to_contain_text('오래된순')
+    page.locator('#expand-hela').click();page.locator('#catalog-preview-chart svg').wait_for()
+    page.locator('#ledger-header-reviewed').focus();page.keyboard.press('Space')
+    assert row_ids(page)==['lethal-wedding','hela','steam-4483570']
+    expect(page.locator('.ledger-preview')).to_have_attribute('id','preview-hela')
+    page.locator('#ledger-sort').select_option('news')
+    page.locator('#ledger-header-reviewed').click()
+    expect(page.locator('#ledger-direction')).to_contain_text('최신순')
+    assert row_ids(page)==['lethal-wedding','hela','steam-4483570']
+    expand(page,'ledger-filters');page.locator('#wish-evidence-filter').select_option('missing')
+    page.locator('#ledger-header-reviewed').click()
+    expect(page.locator('#wish-evidence-filter')).to_have_value('missing')
+    assert row_ids(page)==['steam-4483570']
+    page.reload(wait_until='networkidle')
+    expect(page.locator('#ledger-direction')).to_contain_text('오래된순')
+    assert 'evidence_dir=asc' in page.url and 'evidence=missing' in page.url
+    assert not errors,errors
+    page.close()
+    for width in (360,390):
+        page,errors,_=open_page(browser,data=ordering,catalog=catalog,width=width,route='compare?evidence_dir=asc')
+        assert row_ids(page)==['hela','lethal-wedding','steam-4483570']
+        page.locator('#ledger-direction').click()
+        assert row_ids(page)==['lethal-wedding','hela','steam-4483570']
+        expect(page.locator('#ledger-direction')).to_contain_text('최신순')
+        assert page.locator('#ledger-direction').bounding_box()['height']>=44
+        assert page.locator('body').evaluate('e=>e.scrollWidth')<=width
+        assert not errors,errors
+        page.close()
+    print('PASS publication-date header sort: representative date, both directions, missing last, keyboard, URL/filter/preview and mobile')
     browser.close()
