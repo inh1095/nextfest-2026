@@ -3,6 +3,7 @@
 - Public static research site for `inh1095/nextfest-2026`.
 - Wishlist evidence is the primary product. Default pages show reviewed publisher claims, prior statements, unreviewed numeric mentions and source events; CCU is a historical auxiliary view only.
 - The user clarified on 2026-10-21 that wishlist priority must not replace the original multi-metric analysis with an announcement-only list. Keep historical CCU statistics, charts, comparisons and event context readily accessible alongside wishlist evidence. Every number must name its metric and retain its meaning, time and operator.
+- The user clarified on 2026-10-22 that clicking a game must open a readable overview with actual graphs visible immediately, not just links to charts behind another metric tab. Include available CCU history, wishlist announcement history and official news/video context. Never connect incomparable wishlist claims into a growth line or invent unavailable metrics to fill the screen.
 - The user explicitly stopped automatic CCU collection on 2026-10-21. Honor `collection.ccu_enabled=false` in every collection mode and preserve all existing CCU records. Do not restart it without a new user request.
 - A numeric wishlist mention is a review candidate, not a confirmed count. Never automatically promote keyword matches, future targets or giveaway thresholds to reviewed disclosures.
 - Preserve observations. Missing or failed readings are null, never zero.

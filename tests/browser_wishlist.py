@@ -201,11 +201,27 @@ with sync_playwright() as p:
     expect(page.locator('#wishlist-change')).to_contain_text('증가량 미확인')
     expect(page.locator('.wish-timeline > li')).to_have_count(3)
     expect(page.locator('.wish-timeline')).to_contain_text('찜 5,000건 추가')
+    expect(page.locator('#game-ccu-chart svg')).to_be_visible()
+    expect(page.locator('#game-publication-chart [data-publication-point]')).to_have_count(2)
+    expect(page.locator('#game-publication-chart .publication-selection > li')).to_have_count(2)
+    expect(page.locator('#game-publication-chart')).to_contain_text('수치 기록 2건')
+    expect(page.locator('#wishlist-current')).to_contain_text('수치 기준 2026.10.20')
+    expect(page.locator('.publication-selection')).to_contain_text('수치 기준 2026.10.20')
+    assert page.locator('#game-publication-chart polyline, #game-publication-chart path').count()==0
+    page.locator('#publication-day').select_option('2026-09-01')
+    expect(page.locator('.publication-selection > li')).to_have_count(1)
+    expect(page.locator('.publication-selection')).to_contain_text('2026.09.01 · 시각 미확인')
+    page.locator('[data-publication-point="2026-10-20"]').focus()
+    page.keyboard.press('Enter')
+    expect(page.locator('.publication-selection > li')).to_have_count(2)
+    expect(page.locator('#publication-day')).to_have_value('2026-10-20')
     assert not errors,errors
     page.close()
     page,errors,_=open_page(browser,data=representatives,route='compare?view=wishlists&evidence=reviewed')
     expect(page.locator('#wishlist-catalog .wish-list-value strong')).to_have_text('찜 100,000건 이상 달성')
     expect(page.locator('#wish-evidence-filter')).to_have_value('reviewed')
+    link_href=page.locator('#wishlist-catalog a[href*="/analysis"]').first.get_attribute('href')
+    assert 'metric=wishlists' in link_href and 'range=all' in link_href
     page.locator('#wish-evidence-filter').select_option('candidate')
     assert 'evidence=candidate' in page.url
     page.reload(wait_until='networkidle')

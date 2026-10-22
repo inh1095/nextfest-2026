@@ -3,6 +3,8 @@
 Start a local static server, then run: python3 tests/browser_smoke.py [base_url]
 """
 import copy
+import csv as csv_module
+import io
 import json
 import sys
 from datetime import timedelta
@@ -194,6 +196,8 @@ with sync_playwright() as playwright:
     navigate(page,'analysis')
     expect(page.locator('#game-select')).to_have_value('Lethal Wedding')
     assert page.locator('[data-range="6"]').get_attribute('aria-pressed')=='true'
+    # CCU collection is stopped: the current six-hour window can be empty.
+    page.locator('[data-range="all"]').click()
     page.wait_for_load_state('networkidle')
     with page.expect_download() as download:
         reveal(page, '#download-csv').click()
@@ -356,4 +360,29 @@ with sync_playwright() as playwright:
     assert '종료' in page.locator('#sidebar-collection').inner_text()
     page.close()
     print('PASS event text escaping and end-date display')
+    integrated=fixture(samples=[sample(0,'2026-10-20T08:00:00Z'),sample(0,'2026-10-20T08:20:00Z'),
+        sample(None,'2026-10-20T08:40:00Z',status='error'),sample(10,'2026-10-20T09:00:00Z'),
+        sample(20,'2026-10-20T10:30:00Z')])
+    page,errors,_=load_page(browser,integrated,route='analysis?game=hela&metric=wishlists&range=all',mobile=True)
+    expect(page.locator('#game-ccu-chart circle')).to_have_count(4)
+    expect(page.locator('#game-ccu-chart polyline')).to_have_count(1)
+    expect(page.locator('.integrated-increases')).to_have_count(0)
+    expect(page.locator('#game-news-chart [data-news-day]')).to_have_count(1)
+    expect(page.locator('#game-news-chart .mini-chart-legend')).to_contain_text('소식 1건')
+    expect(page.locator('#game-news-chart .mini-chart-legend')).to_contain_text('영상·방송 1건')
+    with page.expect_download() as download:page.locator('#download-overview-csv').click()
+    csv=Path(download.value.path()).read_text(encoding='utf-8-sig')
+    exported=list(csv_module.DictReader(io.StringIO(csv)))
+    assert all(r['metric']=='demo_ccu' for r in exported)
+    assert sum(r['value']=='0' and r['status']=='ok' for r in exported)==2
+    assert any(r['status']=='error' and r['value']=='' and r['error_code']=='network_error' for r in exported)
+    assert page.locator('body').evaluate('e=>e.scrollWidth')<=390
+    assert not errors,errors
+    page.close()
+    page,errors,_=load_page(browser,fixture(samples=[],events=[]),route='analysis?game=hela&metric=wishlists')
+    assert page.locator('#game-ccu-chart svg, #game-news-chart svg').count()==0
+    expect(page.locator('#game-ccu-panel')).to_contain_text('선택 기간의 정상 관측 없음')
+    assert not errors,errors
+    page.close()
+    print('PASS integrated CCU chart zero/errors/gaps and correct CSV metric; news day counts and empty state')
     browser.close()
