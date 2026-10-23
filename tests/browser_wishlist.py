@@ -47,6 +47,10 @@ def open_page(browser, data=FIXTURE, width=390, route='analysis?game=hela&metric
 
 def expand(page,key):
     d=page.locator('[data-wish-disclosure="'+key+'"]')
+    ancestors=d.locator('xpath=ancestor::details')
+    for i in range(ancestors.count()):
+        parent=ancestors.nth(i)
+        if not parent.evaluate('(el)=>el.open'):parent.locator(':scope > summary').click()
     if not d.evaluate('(el)=>el.open'):d.locator(':scope > summary').click()
     return d
 
@@ -54,7 +58,7 @@ def expand(page,key):
 with sync_playwright() as p:
     browser=p.chromium.launch(headless=True)
     page,errors,requests=open_page(browser,route='overview')
-    expect(page.locator('#wishlist-overview-kpis')).to_contain_text('찜 발표')
+    expect(page.locator('#wishlist-overview-kpis')).to_contain_text('찜 수치 기록')
     expect(page.locator('#wishlist-overview-kpis')).to_contain_text('1건')
     expect(page.locator('#overview-ccu-signals')).to_be_visible()
     expect(page.locator('#overview-news')).to_be_visible()
@@ -346,4 +350,57 @@ with sync_playwright() as p:
         assert not errors,errors
         page.close()
     print('PASS publication-date header sort: representative date, both directions, missing last, keyboard, URL/filter/preview and mobile')
+    for route in ('overview','compare','analysis?game=hela&metric=wishlists','collection?game=hela'):
+        page,errors,_=open_page(browser,data=None,route=route)
+        expect(page.locator('#wish-load-status')).to_contain_text('기록이 없는 상태와 다릅니다')
+        expect(page.locator('[data-wish-retry]')).to_be_visible()
+        expect(page.locator('#header-freshness')).to_contain_text('자료 갱신')
+        expect(page.locator('#header-freshness')).not_to_contain_text('확인 중')
+        if route=='compare':
+            expect(page.locator('.ledger-wish').first).to_contain_text('조회 실패')
+            assert '찜 발표 미확보' not in page.locator('.ledger-wish').first.inner_text()
+        if route.startswith('analysis'):
+            expect(page.locator('#analysis-followers-status')).to_contain_text('조회 실패')
+            expect(page.locator('#game-publications-panel')).to_contain_text('조회 실패')
+            expand(page,'game-candidates')
+            expect(page.locator('#wishlist-candidates')).to_contain_text('조회 실패')
+            expand(page,'wish-mentions-hela')
+            expect(page.locator('[data-wish-disclosure="wish-mentions-hela"]')).not_to_contain_text('언급이 없습니다')
+        page.unroute('**/data/wishlists.json*')
+        page.route('**/data/wishlists.json*',lambda r:r.fulfill(content_type='application/json',body=json.dumps(FIXTURE)))
+        page.locator('[data-wish-retry]').click()
+        expect(page.locator('#wish-load-status')).to_have_count(0)
+        assert not errors,errors
+        page.close()
+    page,errors,_=open_page(browser,route='analysis?game=hela&metric=wishlists')
+    single=page.locator('[data-wish-disclosure="single-claim-history-hela"]')
+    assert not single.evaluate('(e)=>e.open')
+    assert '100,000' not in page.locator('.publication-selection').inner_text()
+    expand(page,'disclosure-fixture-public')
+    expect(page.locator('#wishlist-disclosures blockquote')).to_contain_text('100,000 wishlists')
+    page.unroute('**/data/wishlists.json*')
+    page.route('**/data/wishlists.json*',lambda r:r.fulfill(status=503,body='unavailable'))
+    page.locator('#refresh-data').click()
+    expect(page.locator('#wish-load-status')).to_contain_text('이전 기록 표시')
+    expect(page.locator('#wishlist-current')).to_contain_text('찜 100,000건 초과')
+    assert not errors,errors
+    page.close()
+    empty={**copy.deepcopy(FIXTURE),'disclosures':[],'comparisons':[],'follower_checks':[],'mentions':[],'candidates':[]}
+    page,errors,_=open_page(browser,data=empty,route='analysis?game=hela&metric=wishlists')
+    expect(page.locator('#wish-load-status')).to_have_count(0)
+    expect(page.locator('#wishlist-current')).to_contain_text('검토된 공개 찜 수치 없음')
+    assert not errors,errors
+    page.close()
+    page=browser.new_page(viewport={'width':390,'height':844})
+    pending=[]
+    page.route('**/data/wishlists.json*',lambda r:pending.append(r))
+    page.goto(BASE.rstrip('/')+'/#/compare',wait_until='domcontentloaded')
+    expect(page.locator('#wish-load-status')).to_contain_text('확인하고 있습니다')
+    expect(page.locator('.ledger-wish').first).to_contain_text('확인 중')
+    assert '찜 발표 미확보' not in page.locator('.ledger-wish').first.inner_text()
+    assert pending
+    pending[0].fulfill(content_type='application/json',body=json.dumps(FIXTURE))
+    expect(page.locator('#wish-load-status')).to_have_count(0)
+    page.close()
+    print('PASS first loading/failure/empty distinction across four routes, retry, retained records and single-claim disclosure')
     browser.close()

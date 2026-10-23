@@ -77,6 +77,7 @@ def load_page(browser, data=None, *, route='compare', mobile=False, now=NOW):
         if key+'=' not in route:route+=('&' if '?' in route else '?')+key+'='+value
     page = browser.new_page(viewport={'width':390 if mobile else 1440,'height':900})
     page.emulate_media(reduced_motion='reduce')
+    page.add_init_script('window.__reviewTimers=[];const nativeInterval=window.setInterval;window.setInterval=(fn,ms,...args)=>{window.__reviewTimers.push({fn,ms});return nativeInterval(fn,ms,...args)};')
     page.add_init_script('Date.now = () => Date.parse('+json.dumps(now)+');')
     errors, requests = [], []
     page.on('pageerror', lambda e:errors.append(str(e)))
@@ -237,9 +238,9 @@ with sync_playwright() as playwright:
     assert '+10' in page.locator('#intervals-table').inner_text()
     assert 'Infinity' not in page.locator('#route-view').inner_text()
     assert '공식 데모 업데이트' in page.locator('#interval-detail').inner_text()
-    assert '인과 미확인' in page.locator('#interval-detail').inner_text()
+    assert '원인 미확인' in page.locator('#interval-detail').inner_text()
     page.locator('[data-related-event="fixture-after"]').click()
-    assert '후행' in page.locator('#interval-detail').inner_text()
+    assert '구간 이후' in page.locator('#interval-detail').inner_text()
     screenshot(page,'fleet-desktop-analysis.png')
     reveal(page, '#metric-select').select_option('followers')
     assert '미확보' in page.locator('#route-view').inner_text()
@@ -385,4 +386,43 @@ with sync_playwright() as playwright:
     assert not errors,errors
     page.close()
     print('PASS integrated CCU chart zero/errors/gaps and correct CSV metric; news day counts and empty state')
+    page,errors,_=load_page(browser,integrated,route='analysis?game=hela&metric=wishlists&range=all',mobile=True)
+    plot=page.locator('#game-ccu-chart-plot')
+    plot.focus();page.keyboard.press('Home')
+    expect(page.locator('#game-ccu-chart .chart-reading')).to_contain_text('2026.10.20 17:00:00 KST · 0명')
+    page.keyboard.press('End')
+    expect(page.locator('#game-ccu-chart .chart-reading')).to_contain_text('2026.10.20 19:30:00 KST · 20명')
+    page.locator('#game-ccu-chart circle').nth(2).click(force=True)
+    expect(page.locator('#game-ccu-chart .chart-reading')).to_contain_text('2026.10.20 18:00:00 KST · 10명')
+    page.locator('[data-game-range="6"]').click()
+    expect(page.locator('#game-ccu-chart .chart-reading')).to_contain_text('점을 누르거나')
+    assert not errors,errors
+    page.close()
+    stopped=fixture(now='2026-10-23T00:00:00Z')
+    for metric,chart in [('wishlists','game-ccu-chart'),('demo_ccu','analysis-chart')]:
+        page,errors,_=load_page(browser,stopped,route='analysis?game=hela&metric='+metric+'&range=6',mobile=True,now='2026-10-23T00:00:00Z')
+        expect(page.locator('.period-context')).to_contain_text('2026.10.23 03:00')
+        expect(page.locator('.period-context')).to_contain_text('2026.10.23 09:00')
+        expect(page.locator('.period-context')).to_contain_text('마지막 기록 2026.10.20 17:20')
+        expect(page.locator('#'+chart+' circle')).to_have_count(0)
+        page.locator('.period-context a').click()
+        expect(page.locator('#'+chart+' circle')).to_have_count(2)
+        assert 'range=all' in page.url
+        assert not errors,errors
+        page.close()
+    events=fixture()['events-index']['events']
+    for i in range(30):events.append({**events[0],'id':'extra-'+str(i),'published_at':'2026-10-20T09:00:00Z'})
+    page,errors,_=load_page(browser,fixture(events=events),route='events?event=fixture-before',mobile=True)
+    expect(page.locator('#event-detail')).to_be_focused()
+    expect(page.locator('#event-detail h3')).to_be_in_viewport(ratio=1)
+    page.evaluate('window.scrollTo(0,0)')
+    page.evaluate('window.__reviewTimers.find(t=>t.ms===60000).fn()')
+    assert page.evaluate('scrollY')==0, 'status redraw must not repeat explicit-event navigation'
+    page.evaluate('location.hash="#/events?event=fixture-after"')
+    expect(page.locator('#event-detail')).to_be_focused()
+    expect(page.locator('#event-detail h3')).to_contain_text('공식 개발 영상')
+    expect(page.locator('#event-detail h3')).to_be_in_viewport(ratio=1)
+    assert not errors,errors
+    page.close()
+    print('PASS exact actual-point touch/keyboard reading, range reset, stopped-period dates/full history, one-shot event focus')
     browser.close()
