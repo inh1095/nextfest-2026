@@ -58,7 +58,7 @@ def expand(page,key):
 with sync_playwright() as p:
     browser=p.chromium.launch(headless=True)
     page,errors,requests=open_page(browser,route='overview')
-    expect(page.locator('#wishlist-overview-kpis')).to_contain_text('찜 수치 기록')
+    expect(page.locator('#wishlist-overview-kpis')).to_contain_text('위시리스트(찜) 수치 기록')
     expect(page.locator('#wishlist-overview-kpis')).to_contain_text('1건')
     expect(page.locator('#overview-ccu-signals')).to_be_visible()
     expect(page.locator('#overview-news')).to_be_visible()
@@ -202,12 +202,12 @@ with sync_playwright() as p:
     representatives['comparisons']=[dict(game_id='hela',latest_disclosure_id='latest-total',
         previous_disclosure_id='old-stock',delta=None,percent=None,status='unavailable',publication_order_ambiguous=True)]
     page,errors,_=open_page(browser,data=representatives)
-    expect(page.locator('#wishlist-current .wish-record-heading strong')).to_have_text('찜 100,000건 이상 달성')
-    expect(page.locator('#wishlist-current .wish-previous strong')).to_have_text('찜 50,000건 이상 달성')
+    expect(page.locator('#wishlist-current .wish-record-heading strong')).to_have_text('위시리스트(찜) 100,000건 이상 달성')
+    expect(page.locator('#wishlist-current .wish-previous strong')).to_have_text('위시리스트(찜) 50,000건 이상 달성')
     expect(page.locator('#wishlist-current')).to_contain_text('선후 미확인')
     expect(page.locator('#wishlist-change')).to_contain_text('증가량 미확인')
     expect(page.locator('.wish-timeline > li')).to_have_count(3)
-    expect(page.locator('.wish-timeline')).to_contain_text('찜 5,000건 추가')
+    expect(page.locator('.wish-timeline')).to_contain_text('위시리스트(찜) 5,000건 추가')
     expect(page.locator('#game-ccu-chart svg')).to_be_visible()
     expect(page.locator('#game-publication-chart [data-publication-point]')).to_have_count(2)
     expect(page.locator('#game-publication-chart .publication-selection > li')).to_have_count(2)
@@ -225,7 +225,7 @@ with sync_playwright() as p:
     assert not errors,errors
     page.close()
     page,errors,_=open_page(browser,data=representatives,route='compare?view=wishlists&evidence=reviewed')
-    expect(page.locator('#wishlist-catalog .wish-list-value strong')).to_have_text('찜 100,000건 이상 달성')
+    expect(page.locator('#wishlist-catalog .wish-list-value strong')).to_have_text('위시리스트(찜) 100,000건 이상 달성')
     expect(page.locator('#wish-evidence-filter')).to_have_value('reviewed')
     link_href=page.locator('#wishlist-catalog a[href*="/analysis"]').first.get_attribute('href')
     assert 'metric=wishlists' in link_href and 'range=all' in link_href
@@ -246,7 +246,7 @@ with sync_playwright() as p:
     for width in (360,390,1440):
         for route,selector in [('overview','#wishlist-latest-reviews'),('compare?evidence=reviewed','#wishlist-catalog'),('analysis?game=hela','#wishlist-current')]:
             page,errors,_=open_page(browser,data=hope,width=width,route=route)
-            expect(page.locator(selector)).to_contain_text('하루 만에 찜 500건 초과')
+            expect(page.locator(selector)).to_contain_text('하루 만에 위시리스트(찜) 500건 초과')
             expect(page.locator(selector)).to_contain_text('총량/하루 추가 구분 미기재')
             expect(page.locator(selector)).to_contain_text('Steam 공식 공지')
             expect(page.locator(selector)).to_contain_text('집계 범위 미기재')
@@ -358,7 +358,7 @@ with sync_playwright() as p:
         expect(page.locator('#header-freshness')).not_to_contain_text('확인 중')
         if route=='compare':
             expect(page.locator('.ledger-wish').first).to_contain_text('조회 실패')
-            assert '찜 발표 미확보' not in page.locator('.ledger-wish').first.inner_text()
+            assert '위시리스트(찜) 발표 미확보' not in page.locator('.ledger-wish').first.inner_text()
         if route.startswith('analysis'):
             expect(page.locator('#analysis-followers-status')).to_contain_text('조회 실패')
             expect(page.locator('#game-publications-panel')).to_contain_text('조회 실패')
@@ -382,13 +382,13 @@ with sync_playwright() as p:
     page.route('**/data/wishlists.json*',lambda r:r.fulfill(status=503,body='unavailable'))
     page.locator('#refresh-data').click()
     expect(page.locator('#wish-load-status')).to_contain_text('이전 기록 표시')
-    expect(page.locator('#wishlist-current')).to_contain_text('찜 100,000건 초과')
+    expect(page.locator('#wishlist-current')).to_contain_text('위시리스트(찜) 100,000건 초과')
     assert not errors,errors
     page.close()
     empty={**copy.deepcopy(FIXTURE),'disclosures':[],'comparisons':[],'follower_checks':[],'mentions':[],'candidates':[]}
     page,errors,_=open_page(browser,data=empty,route='analysis?game=hela&metric=wishlists')
     expect(page.locator('#wish-load-status')).to_have_count(0)
-    expect(page.locator('#wishlist-current')).to_contain_text('검토된 공개 찜 수치 없음')
+    expect(page.locator('#wishlist-current')).to_contain_text('검토된 공개 위시리스트(찜) 수치 없음')
     assert not errors,errors
     page.close()
     page=browser.new_page(viewport={'width':390,'height':844})
@@ -397,7 +397,7 @@ with sync_playwright() as p:
     page.goto(BASE.rstrip('/')+'/#/compare',wait_until='domcontentloaded')
     expect(page.locator('#wish-load-status')).to_contain_text('확인하고 있습니다')
     expect(page.locator('.ledger-wish').first).to_contain_text('확인 중')
-    assert '찜 발표 미확보' not in page.locator('.ledger-wish').first.inner_text()
+    assert '위시리스트(찜) 발표 미확보' not in page.locator('.ledger-wish').first.inner_text()
     assert pending
     pending[0].fulfill(content_type='application/json',body=json.dumps(FIXTURE))
     expect(page.locator('#wish-load-status')).to_have_count(0)

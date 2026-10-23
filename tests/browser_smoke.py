@@ -321,7 +321,7 @@ with sync_playwright() as playwright:
     expect(selected).to_contain_text('2026.10.20 03:00 KST')
     expect(selected.locator('.last-observation-time')).to_contain_text('2026.10.20 17:20 KST')
     expect(page.locator('#collection-cadence')).to_contain_text('화면 갱신')
-    expect(page.locator('#collection-cadence')).to_contain_text('찜 공개 수치')
+    expect(page.locator('#collection-cadence')).to_contain_text('위시리스트(찜) 공개 수치')
     expect(page.locator('#wishlist-status')).to_contain_text('정기 수집 없음')
     page.locator('#open-full-history').click()
     expect(page.locator('[data-range="all"]')).to_have_attribute('aria-pressed','true')
