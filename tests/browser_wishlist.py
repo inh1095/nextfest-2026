@@ -86,7 +86,9 @@ with sync_playwright() as p:
     expect(page.locator('#game-background')).to_contain_text('Windup')
     expect(page.locator('#game-background')).to_contain_text('Knights Peak')
     expect(page.locator('#game-background')).to_contain_text('1 Dec, 2026')
-    expect(page.locator('#game-background')).to_contain_text('자료 저장 · 개별 확인시각 미기재')
+    expect(page.locator('.profile-shared-source')).to_contain_text('장르·출시 계획 · 2026.10.20 자료 저장')
+    expand(page,'profile-source-hela')
+    expect(page.locator('.profile-shared-source')).to_contain_text('개별 확인시각은 미기재')
     expect(page.locator('.game-video-list')).to_contain_text('Hela: of Mice & Magic by Windup Games')
     expect(page.locator('#game-reviews')).to_contain_text('저장된 검토 기록')
     expand(page,'saved-review-hela-0')
@@ -179,6 +181,13 @@ with sync_playwright() as p:
     expect(page.locator('#wishlist-catalog')).to_contain_text('Hela')
     assert page.locator('#catalog-sort').count()==0
     expect(page.locator('.ledger-entry')).to_have_count(25)
+    expect(page.locator('#catalog-pagination-top')).to_be_visible()
+    first_game=page.locator('.ledger-entry').first.get_attribute('data-ledger-game')
+    page.locator('#catalog-pagination-top button').last.click()
+    assert page.locator('.ledger-entry').first.get_attribute('data-ledger-game')!=first_game
+    assert page.locator('#catalog-pagination').count()==1
+    assert page.locator('#catalog-pagination-top').count()==1
+    page.locator('#catalog-pagination-top button').first.click()
     expand(page,'ledger-filters')
     page.locator('#wish-evidence-filter').select_option('reviewed')
     expect(page.locator('.ledger-entry')).to_have_count(1)
@@ -417,6 +426,8 @@ with sync_playwright() as p:
     page,errors,_=open_page(browser,data=empty,route='analysis?game=hela&metric=wishlists')
     expect(page.locator('#wish-load-status')).to_have_count(0)
     expect(page.locator('#wishlist-current')).to_contain_text('검토된 공개 위시리스트(찜) 수치 없음')
+    expect(page.locator('#game-publications-panel')).to_have_count(0)
+    expect(page.locator('#wishlist-disclosures')).to_have_count(0)
     assert not errors,errors
     page.close()
     page=browser.new_page(viewport={'width':390,'height':844})

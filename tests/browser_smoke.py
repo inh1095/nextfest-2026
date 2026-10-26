@@ -71,7 +71,7 @@ def fixture(samples=None, events=None, now=NOW):
     return {'summary':summary, 'history':history, 'events-index':dict(schema_version=2, generated_at=now, events=events)}
 
 
-def load_page(browser, data=None, *, route='compare', mobile=False, now=NOW):
+def load_page(browser, data=None, *, route='compare', mobile=False, now=NOW, pending_history=None):
     if route.split('?')[0] in ('analysis','compare'):
         key,value=('metric','demo_ccu') if route.split('?')[0]=='analysis' else ('view','ccu')
         if key+'=' not in route:route+=('&' if '?' in route else '?')+key+'='+value
@@ -87,6 +87,9 @@ def load_page(browser, data=None, *, route='compare', mobile=False, now=NOW):
             path = urlsplit(request.request.url).path
             name = path.rsplit('/',1)[-1].removesuffix('.json')
             if '/games/' in path:
+                if pending_history is not None:
+                    pending_history.append(request)
+                    return
                 payload = data['history'].get(name, blank_history(parse(now)))
             else:
                 payload = {'config':CONFIG,'catalog':CATALOG,**data}.get(name)
@@ -95,7 +98,7 @@ def load_page(browser, data=None, *, route='compare', mobile=False, now=NOW):
             else:
                 request.fulfill(content_type='application/json',body=json.dumps(payload,ensure_ascii=False))
         page.route('**/data/**', respond)
-    page.goto(BASE.rstrip('/')+'/#/'+route, wait_until='networkidle')
+    page.goto(BASE.rstrip('/')+'/#/'+route, wait_until='domcontentloaded' if pending_history is not None else 'networkidle')
     page.locator('#route-view[data-page="'+route.split('?')[0]+'"]').wait_for()
     assert not errors, errors
     return page, errors, requests
@@ -425,4 +428,45 @@ with sync_playwright() as playwright:
     assert not errors,errors
     page.close()
     print('PASS exact actual-point touch/keyboard reading, range reset, stopped-period dates/full history, one-shot event focus')
+    direct=fixture(samples=[sample(10,'2026-10-20T08:00:00Z'),sample(20,'2026-10-20T08:20:00Z'),sample(50,'2026-10-20T08:40:00Z')])
+    pending=[]
+    at='2026-10-20T08:20:00Z'
+    page,errors,_=load_page(browser,direct,route='analysis?game=hela&metric=demo_ccu&range=all&at='+at,mobile=True,pending_history=pending)
+    expect(page.locator('.loading-title')).to_be_visible()
+    assert page.evaluate('scrollY')==0
+    assert pending
+    pending.pop(0).fulfill(content_type='application/json',body=json.dumps(direct['history']['hela']))
+    expect(page.locator('#interval-detail')).to_be_focused()
+    expect(page.locator('#interval-detail .detail-value')).to_contain_text('+10')
+    expect(page.locator('#interval-detail .detail-value')).to_be_in_viewport(ratio=1)
+    assert 'at='+at in page.url
+    page.evaluate('scrollTo(0,0)')
+    page.evaluate('window.__reviewTimers.find(t=>t.ms===60000).fn()')
+    assert page.evaluate('scrollY')==0
+    with page.expect_response(lambda r:'/data/summary.json' in r.url):page.locator('#refresh-data').click()
+    expect(page.locator('#refresh-data')).to_be_enabled()
+    assert page.evaluate('scrollY')==0
+    page.evaluate('location.hash="/analysis?game=hela&metric=demo_ccu&range=all&at=2026-10-20T08:40:00Z"')
+    expect(page.locator('#interval-detail')).to_be_focused()
+    expect(page.locator('#interval-detail .detail-value')).to_contain_text('+30')
+    page.evaluate('scrollTo(0,0)')
+    newer=fixture(samples=[sample(10,'2026-10-20T08:00:00Z'),sample(20,'2026-10-20T08:20:00Z'),sample(50,'2026-10-20T08:40:00Z'),sample(90,'2026-10-20T09:00:00Z')])
+    newer['summary']['generated_at']='2026-10-20T10:31:00Z';direct.update(newer)
+    with page.expect_request(lambda r:'/games/hela.json' in r.url):page.locator('#refresh-data').click()
+    page.evaluate('location.hash="/analysis?game=hela&metric=demo_ccu&range=all&at=2026-10-20T09:00:00Z"')
+    expect(page.locator('#interval-detail .detail-value')).not_to_contain_text('+40')
+    assert pending
+    pending.pop(0).fulfill(content_type='application/json',body=json.dumps(newer['history']['hela']))
+    expect(page.locator('#interval-detail')).to_be_focused()
+    expect(page.locator('#interval-detail .detail-value')).to_contain_text('+40')
+    expect(page.locator('#interval-detail .detail-period')).to_contain_text('10.20 18:00')
+    expect(page.locator('#interval-detail .detail-value')).to_be_in_viewport(ratio=1)
+    assert not errors,errors;page.close()
+    stale=fixture(now='2026-10-26T12:00:00Z')
+    page,errors,_=load_page(browser,stale,route='analysis?game=hela&metric=wishlists&range=all',mobile=True,now='2026-10-26T12:00:00Z')
+    expect(page.locator('.ccu-last-time')).to_have_text('2026.10.20 17:20:00 KST')
+    expect(page.locator('.integrated-metrics .badge')).to_have_text('관측 지연')
+    expect(page.locator('.integrated-metrics')).to_contain_text('전체 기록 최고')
+    assert not errors,errors;page.close()
+    print('PASS exact at navigation after delayed history, one-shot focus, refresh scroll preservation and stale timestamp by value')
     browser.close()

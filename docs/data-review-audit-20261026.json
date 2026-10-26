@@ -1,0 +1,430 @@
+{
+  "schema_version": 1,
+  "repository_head": "b9e616c348bb937b6d0a0643a89a979eead1b8c0",
+  "snapshot_basis": {
+    "summary_generated_at": "2026-10-26T05:12:21Z",
+    "window_end": "2026-10-26T05:12:21Z",
+    "last_completed_run_id": "gh-40272072400-1",
+    "file_sha256": {
+      "site/data/summary.json": "a3aeee554fe7aaf8cdc12980a38b3b773ed11992be39d1ae3894fe9c46b5f079",
+      "site/data/wishlists.json": "cf8b1c8b80a250a25ad23eac3373806e9e4a117c5cbcfdf3e71ec38fc1aba6e8",
+      "site/data/catalog.json": "edbafa0a1be5a5d4c90ec62dee13f118a4ee69c10a46674f994ad69598f03082",
+      "site/data/events-index.json": "6a328cdd89adf4f32deda339ec3dba33bd9c9127e18af51b3978fb046406fd7a",
+      "config/game-context.json": "aae373638f59ff216354ccd8292382d7c3d5415688e8908c5701c9f1d65747fc"
+    },
+    "scope_note": "Read-only local repository snapshot; no collector runs, API snapshots, settings changes, or remote dispatch. A later automatic cloud run is outside this snapshot."
+  },
+  "checks": {
+    "ccu_independent_calculation": "All 7164 games, all/6h/24h first/last/peak/count/latest adjacent/max increase/percent/positive intervals; actual timestamps, invalid/gap exclusion, latest-timestamp tie policy.",
+    "metadata_independent_calculation": "Every stored sample unit/scope/AppID, null versus zero, summary latest valid/attempt times/count. Historical error observations preserved.",
+    "source_references": "Every event index entry matches preserved raw event. Wishlist event URL/date exact; quote casefolded/whitespace-normalized substring of stored title + summary; referenced game/AppID correct.",
+    "game_context": "Public config copy equals source; all IDs join catalog, artifact hash equals recovery audit. Names retain raw whitespace; UI nonblank coverage checked.",
+    "reviews_and_videos": "Both analytical reviews reference real sample/event IDs and keep original period/date. Three official video records retain source/date/channel context.",
+    "mismatch_count": 0,
+    "duplicate_ccu_timestamp_games": 0,
+    "future_event_publication_count": 0
+  },
+  "actual_coverage": {
+    "catalog": 7164,
+    "record_counts": {
+      "demo_ccu": 55196,
+      "price_final": 14328,
+      "review_count": 14328,
+      "review_positive_percent": 14328,
+      "event:announcement": 13803,
+      "event:update": 6488,
+      "followers": 2,
+      "event:video": 3
+    },
+    "latest_metric_status": {
+      "demo_ccu": {
+        "ok": 7163
+      },
+      "review_count": {
+        "ok": 7161,
+        "unavailable": 3
+      },
+      "review_positive_percent": {
+        "unavailable": 7157,
+        "ok": 7
+      },
+      "price_final": {
+        "unavailable": 6916,
+        "ok": 248
+      },
+      "followers": {
+        "unavailable": 2
+      }
+    },
+    "recent_ccu": {
+      "old_latest_dates": {
+        "2026-10-21": 1133
+      },
+      "new_latest_dates": {
+        "2026-10-26": 6030
+      },
+      "old_latest_values": {
+        "positive": 335,
+        "zero": 798
+      },
+      "new_latest_values": {
+        "zero": 4034,
+        "positive": 1996
+      },
+      "old_latest_range": [
+        "2026-10-21T07:23:39Z",
+        "2026-10-21T07:49:30Z"
+      ],
+      "latest_attempt_equals_latest_ok": 7163,
+      "old_sample_game5030670": {
+        "game_id": "steam-5030670",
+        "name": "Warehouse Catastrophe",
+        "at": "2026-10-21T07:27:11Z",
+        "value": 0,
+        "attempt": "2026-10-21T07:27:11Z"
+      },
+      "wishlist": {
+        "coverage": {
+          "disclosure_games": 107,
+          "disclosures": 133,
+          "mention_games": 1260,
+          "mentions": 1902,
+          "candidate_games": 249,
+          "candidates": 340,
+          "current_stock_games": 0,
+          "followers_ok": 0,
+          "followers_conflict": 2
+        },
+        "latest_disclosure_published_at": "2026-10-21T01:49:15Z",
+        "latest_disclosure_verified_at": "2026-10-21T07:56:37Z",
+        "candidate_latest_published_at": "2026-10-25T23:07:30Z",
+        "candidate_example_keys": [
+          "id",
+          "event_id",
+          "game_id",
+          "title",
+          "published_at",
+          "source_url",
+          "quote",
+          "matched_phrase_kind",
+          "review_status"
+        ]
+      }
+    },
+    "game_context": {
+      "catalog_games": 7164,
+      "mapped_games": 7164,
+      "developers_games": 7163,
+      "publishers_games": 7163,
+      "genres_games": 2,
+      "release_date_games": 2,
+      "video_games": 2,
+      "videos": 3
+    },
+    "nonblank_names": {
+      "developers_nonblank_games": 7163,
+      "publishers_nonblank_games": 7163
+    },
+    "saved_analysis_records": [
+      {
+        "game_id": "hela",
+        "from": "2026-10-20T06:59:20Z",
+        "to": "2026-10-20T06:59:20Z",
+        "assessment": "insufficient",
+        "reviewed_at": "2026-10-20T07:07:13Z",
+        "hypothesis": null
+      },
+      {
+        "game_id": "lethal-wedding",
+        "from": "2026-10-20T06:59:21Z",
+        "to": "2026-10-20T06:59:21Z",
+        "assessment": "insufficient",
+        "reviewed_at": "2026-10-20T07:07:13Z",
+        "hypothesis": null
+      }
+    ],
+    "wishlist_claim_semantics": {
+      "records": 133,
+      "games": 107,
+      "unique_game_source": 132,
+      "stock_definitions": {
+        "unspecified": 131,
+        "period_adds": 2
+      },
+      "kind": {
+        "milestone_lower_bound": 107,
+        "reported_count": 24,
+        "period_additions": 2
+      },
+      "operator": {
+        "gte": 63,
+        "gt": 51,
+        "approx": 5,
+        "eq": 14
+      },
+      "platform_scope": {
+        "unspecified": 96,
+        "steam": 37
+      },
+      "as_of_known": 0,
+      "verified_at_min": "2026-10-21T05:09:01Z",
+      "verified_at_max": "2026-10-21T07:56:37Z",
+      "quotes_in_title": 24,
+      "reference_comparison": "URL and published_at exact; quote casefolded/whitespace-normalized substring of stored title + summary"
+    }
+  },
+  "observed_intervals_minutes": {
+    "method": "Median; p90 uses linear interpolation at (n-1)*0.9. Mixed historic/full-bootstrap/stopped-period samples are reported separately from post-restart pairs.",
+    "stats": {
+      "all_mixed_bootstrap_and_stopped_period": {
+        "n": 48033,
+        "median": 223.68333333333334,
+        "p90": 7036.85,
+        "min": 9.1,
+        "max": 7080.166666666667
+      },
+      "before_restart": {
+        "n": 41983,
+        "median": 223.35,
+        "p90": 239.7,
+        "min": 9.1,
+        "max": 251.15
+      },
+      "pairs_both_after_restart": {
+        "n": 20,
+        "median": 22.65833333333333,
+        "p90": 25.688333333333365,
+        "min": 20.433333333333334,
+        "max": 45.5
+      },
+      "per_game_latest_gap_mixed": {
+        "n": 7163,
+        "median": 7046.583333333333,
+        "p90": 7063.6,
+        "min": 23.0,
+        "max": 7080.166666666667
+      },
+      "latest_sample_age": {
+        "n": 7163,
+        "median": 143.31666666666666,
+        "p90": 7046.316666666667,
+        "min": 5.066666666666666,
+        "max": 7068.7
+      }
+    },
+    "metadata": {
+      "review_count": {
+        "n": 7164,
+        "median": 246.91666666666666,
+        "p90": 246.91666666666666,
+        "min": 15.516666666666667,
+        "max": 246.93333333333334
+      },
+      "review_positive_percent": {
+        "n": 7164,
+        "median": 246.91666666666666,
+        "p90": 246.91666666666666,
+        "min": 15.516666666666667,
+        "max": 246.93333333333334
+      },
+      "price_final": {
+        "n": 7164,
+        "median": 246.91666666666666,
+        "p90": 246.91666666666666,
+        "min": 15.516666666666667,
+        "max": 246.93333333333334
+      }
+    },
+    "seed_games": {
+      "hela": {
+        "valid_samples": 74,
+        "new_samples": 11,
+        "latest": {
+          "game_id": "hela",
+          "metric": "demo_ccu",
+          "observed_at": "2026-10-26T05:02:44Z",
+          "value": 72,
+          "status": "ok",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+          "error_code": null
+        },
+        "all_gap_minutes": {
+          "n": 73,
+          "median": 22.2,
+          "p90": 23.09,
+          "min": 9.1,
+          "max": 6792.233333333334
+        },
+        "restart_gap_minutes": {
+          "n": 10,
+          "median": 22.65,
+          "p90": 25.688333333333325,
+          "min": 20.433333333333334,
+          "max": 45.38333333333333
+        },
+        "last_two_gap_minutes": 23.1,
+        "all_range": {
+          "from": "2026-10-19T17:00:00Z",
+          "to": "2026-10-26T05:12:21Z",
+          "first": {
+            "observed_at": "2026-10-20T06:59:20Z",
+            "value": 159
+          },
+          "last": {
+            "observed_at": "2026-10-26T05:02:44Z",
+            "value": 72
+          },
+          "peak": 380,
+          "valid_count": 74,
+          "latest_adjacent": {
+            "from": "2026-10-26T04:39:38Z",
+            "to": "2026-10-26T05:02:44Z",
+            "start_value": 87,
+            "end_value": 72,
+            "delta": -15,
+            "percent": -17.24137931034483,
+            "elapsed_minutes": 23.1
+          },
+          "max_increase": {
+            "from": "2026-10-20T18:41:45Z",
+            "to": "2026-10-20T19:03:56Z",
+            "start_value": 271,
+            "end_value": 309,
+            "delta": 38,
+            "percent": 14.022140221402212,
+            "elapsed_minutes": 22.183333333333334
+          },
+          "positive_intervals": 30
+        }
+      },
+      "lethal-wedding": {
+        "valid_samples": 74,
+        "new_samples": 11,
+        "latest": {
+          "game_id": "lethal-wedding",
+          "metric": "demo_ccu",
+          "observed_at": "2026-10-26T05:02:43Z",
+          "value": 0,
+          "status": "ok",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+          "error_code": null
+        },
+        "all_gap_minutes": {
+          "n": 73,
+          "median": 22.216666666666665,
+          "p90": 23.066666666666666,
+          "min": 9.133333333333333,
+          "max": 6792.116666666667
+        },
+        "restart_gap_minutes": {
+          "n": 10,
+          "median": 22.65833333333333,
+          "p90": 25.699999999999992,
+          "min": 20.466666666666665,
+          "max": 45.5
+        },
+        "last_two_gap_minutes": 23.0,
+        "all_range": {
+          "from": "2026-10-19T17:00:00Z",
+          "to": "2026-10-26T05:12:21Z",
+          "first": {
+            "observed_at": "2026-10-20T06:59:21Z",
+            "value": 0
+          },
+          "last": {
+            "observed_at": "2026-10-26T05:02:43Z",
+            "value": 0
+          },
+          "peak": 1,
+          "valid_count": 74,
+          "latest_adjacent": {
+            "from": "2026-10-26T04:39:43Z",
+            "to": "2026-10-26T05:02:43Z",
+            "start_value": 0,
+            "end_value": 0,
+            "delta": 0,
+            "percent": null,
+            "elapsed_minutes": 23.0
+          },
+          "max_increase": {
+            "from": "2026-10-21T05:52:53Z",
+            "to": "2026-10-21T06:15:07Z",
+            "start_value": 0,
+            "end_value": 1,
+            "delta": 1,
+            "percent": null,
+            "elapsed_minutes": 22.233333333333334
+          },
+          "positive_intervals": 6
+        }
+      }
+    }
+  },
+  "preservation": {
+    "baseline_reference": "/tmp/nextfest-metrics-probe/pre-extension-baseline.json",
+    "baseline_sha256": "049f85da3aadb237a9f7de7508dbb88dc57a1fa00a773a9faf659ae97d7b8c2d",
+    "baseline_created_at": "2026-10-26T00:53:32.164078+00:00",
+    "baseline_records": 69416,
+    "baseline_breakdown": {
+      "samples:demo_ccu": 49146,
+      "events:announcement": 13788,
+      "events:update": 6477,
+      "samples:followers": 2,
+      "events:video": 3
+    },
+    "method": "Per-game samples/events canonical-JSON SHA256 multiset containment; additions allowed; no original record may disappear or change.",
+    "missing_or_modified": 0
+  },
+  "display_issues": [
+    {
+      "file": "site/app.js",
+      "line": 263,
+      "issue": "lastRunPanel shows total requests and CCU/news requests but omits metadata_requests. Latest total1221 = CCU550 + news600 + metadata71; display breakdown is incomplete.",
+      "status": "Reported to parent/frontend for correction; no source edits by this audit."
+    },
+    {
+      "file": "site/app.js",
+      "lines": [
+        122,
+        639
+      ],
+      "issue": "A normal historic source status does not mean current online players. At this snapshot 1133 games still show 2026-10-21 samples, including 798 old zero readings. Put the actual timestamp and delayed/pre-restart status next to the value.",
+      "status": "Parent/frontend already correcting after independent UI audit."
+    }
+  ],
+  "remaining_limits": [
+    "Exact wishlist outstanding balances: 0; known as_of:0; calibrated predictor/evaluation data:0. 133 records across107 games are publisher claims, not a comparable balance series.",
+    "Wishlists reviewed at latest 2026-10-21T07:56:37Z; index generation is not a new review. Current340 candidates across249 games remain unreviewed.",
+    "CCU observation was stopped between2026-10-21 and2026-10-26. Do not fill the gap or compare its endpoints as an adjacent surge. At this snapshot regular games have at most one new post-restart sample; only two priority games have post-restart pairs.",
+    "Game-wide CCU 280min and news480min are configured rotation targets, not delivered precision guarantees. Seed CCU20min target actually median22.65min after restart; observed maximum45.5min.",
+    "Verified followers:0. XML conflicts/rate limiting remain unresolved; no member-count substitute.",
+    "Most games remain unreleased; reviewed store count0 is real while positive percentage unavailable is not0%. Store-filtered review scope must not be merged with GetAppReviews all-purchase totals.",
+    "Developer/publisher context is a 2026-10-20 snapshot; genre/release dates exist only for two seed games, with profile HTTP timestamp unknown.",
+    "Official videos are only3 across2 games; no view-count history, campaign exposure/clicks, or measured attribution.",
+    "Saved analysis has2 initial single-point insufficient assessments, not a current investigation for4909 historical positive-increase games.",
+    "News is a preserved limited official-feed sample, not exhaustive marketing history; short excerpts can omit relevant claims and embedded links."
+  ],
+  "feasible_priorities": [
+    {
+      "priority": 1,
+      "action": "Manually review recent numeric wishlist candidates with developer sources, operators, stock/period/platform definitions, and event date. Five current official articles have now been read; proposals await Astra cross-review.",
+      "artifact": "/tmp/nextfest-review2-wishlist-five.json"
+    },
+    {
+      "priority": 2,
+      "action": "Allow at least two fresh observations for normal catalog games before assessing current change; select actual increase intervals and preserve the collection gap."
+    },
+    {
+      "priority": 3,
+      "action": "For selected increases, review existing official announcement context and available demo launch/update/Next Fest dates, then save source-linked hypotheses, alternatives, and review periods. Do not call temporal proximity causal proof."
+    },
+    {
+      "priority": 4,
+      "action": "Expand verified official video/developer-linked coverage for selected games, retaining exact title/channel/publication dates; add view-count snapshots only through an authorized supported source, with collection-start limits."
+    },
+    {
+      "priority": 5,
+      "action": "Recover/collect public genre/release metadata where currently absent, as independently dated context; do not infer it from tags or old plans."
+    }
+  ]
+}
