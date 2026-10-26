@@ -1,0 +1,136 @@
+{
+  "schema_version": 1,
+  "verified_at": "2026-10-26T00:37:14.518355+00:00",
+  "scope": "Small public source probes only; no operational files or histories changed; no SteamDB, authentication, or personal identifiers retained.",
+  "sample_appids": {
+    "hela": {
+      "base": 3161310,
+      "demo": 4553860
+    },
+    "lethal-wedding": {
+      "base": 4624120,
+      "demo": 4768410
+    },
+    "paid_released": 620,
+    "free_released": 570
+  },
+  "sources": [
+    {
+      "url": "https://partner.steamgames.com/doc/webapi/ISteamUserStats#GetNumberOfCurrentPlayers",
+      "supports": "Current online players for specified AppID, excludes offline users."
+    },
+    {
+      "url": "https://partner.steamgames.com/doc/webapi/IUserReviewsService",
+      "supports": "New review endpoint, input_json, query filters, no key required; anonymous cache up to 10 minutes; shared lower rate limit and 429."
+    },
+    {
+      "url": "https://partner.steamgames.com/doc/store/getreviews",
+      "supports": "Legacy store appreviews deprecated."
+    },
+    {
+      "url": "https://partner.steamgames.com/doc/marketing/followers",
+      "supports": "Official app-group members represent followers; documented membersManage count requires developer login."
+    }
+  ],
+  "ccu": {
+    "base_demo_separate": true,
+    "base_404_value": null,
+    "result_validation": "HTTP200, response.result==1, integer player_count>=0",
+    "historical_guarantee": false,
+    "offline_excluded": true
+  },
+  "bulk_store": {
+    "endpoint": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/",
+    "context": {
+      "language": "koreana",
+      "country_code": "KR"
+    },
+    "data_request": {
+      "include_reviews": true,
+      "include_release": true
+    },
+    "tested_batch_size": 4,
+    "prior_catalog_verified_batch_size": 100,
+    "official_host_response_verified": true,
+    "public_schema_documentation_verified": false,
+    "mapping_validation": "All 4 requested IDs returned once, success=1, id=appid=requested AppID; names match.",
+    "reviews_metric_scope": "store_summary_filtered",
+    "review_fields": [
+      "reviews.summary_filtered.review_count",
+      "reviews.summary_filtered.percent_positive",
+      "reviews.summary_filtered.review_score",
+      "reviews.summary_filtered.review_score_label"
+    ],
+    "language_specific_separate": true,
+    "zero_total_percent": null,
+    "must_not_merge_with": "GetAppReviews all-purchase counts or language-specific summaries",
+    "purchase_fields": [
+      "best_purchase_option.packageid",
+      "best_purchase_option.purchase_option_name",
+      "best_purchase_option.final_price_in_cents",
+      "best_purchase_option.formatted_final_price",
+      "best_purchase_option.included_game_count"
+    ],
+    "price_unit_sample": "Portal2 KR raw1100000 / formatted KRW 11000, scale100 verified only against this country/sample",
+    "currency_key_in_sample": false,
+    "initial_discount_keys_in_sample": false,
+    "absent_price_is_not_zero": true,
+    "free_rule": "is_free explicitly true; preserve whether field was present",
+    "coming_soon_rule": "is_coming_soon true + no purchase option -> no announced purchase price; do not infer zero",
+    "release_fields": [
+      "release.steam_release_date",
+      "release.is_coming_soon",
+      "release.custom_release_date_message",
+      "release.coming_soon_display"
+    ],
+    "no_actual_release_from_planned_timestamp": true
+  },
+  "reviews_api": {
+    "endpoint": "https://api.steampowered.com/IUserReviewsService/GetAppReviews/v1/",
+    "input_json_required": true,
+    "parameters": {
+      "filter": 1,
+      "languages": [
+        "all"
+      ],
+      "review_type": 0,
+      "purchase_type": 1,
+      "num_per_page": 1,
+      "filter_offtopic_activity": true,
+      "display_language": "koreana"
+    },
+    "summary_path": "response.query_summary",
+    "percent_derivation": "100*total_positive/total_reviews only when total_reviews>0; otherwise null",
+    "success_validation": "HTTP status and response schema; no success field",
+    "num_per_page_0_actual_behavior": "Returned 20 reviews in released-app probes; not a summary-only request. num_per_page=1 separately verified to return exactly 1. Author/body discarded.",
+    "anonymous_cache_seconds_max": 600,
+    "specific_rps_guarantee": null,
+    "comparison_probe": "Portal2 purchase_type=0 total392163 vs StoreBrowse filtered392259; not numerically identical; filter/cache/version scope unresolved, keep series separate."
+  },
+  "followers": {
+    "status": "unverified_rate_limited",
+    "value": null,
+    "latest_probe_http_statuses": [
+      429,
+      429
+    ],
+    "further_community_probes": false,
+    "existing_seed_checks": "Both conflict; original evidence preserved, no count selected.",
+    "public_xml_freshness_resolved": false,
+    "automated_handling": "429 triggers domain cooldown/backoff and no memberCount fallback; failures/conflicts null."
+  },
+  "artifacts": [
+    "samples.json",
+    "reviews-new.json",
+    "reviews-steam-one.json",
+    "storebrowse.json",
+    "storebrowse-release.json"
+  ],
+  "implementation_notes": [
+    "Preserve observed_at and source URL/filter/context per observation; not API cache creation time.",
+    "Do not backfill past samples or replace failed readings with zero.",
+    "Bulk tests cover 4 apps, not a new full 7164-game sweep.",
+    "Prices and reviews may decrease or be revised; snapshot changes are not guaranteed new purchases/reviews.",
+    "Base CCU may be unavailable for unreleased apps; demo CCU valid 0 remains distinct."
+  ]
+}

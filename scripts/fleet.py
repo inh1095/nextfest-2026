@@ -20,6 +20,7 @@ from pathlib import Path
 from collect import (ROOT, UTC, USER_AGENT, ccu_url, error_code,
                      load_json, news_events, parse, parse_ccu, stamp)
 from wishlist import build_index as build_wishlist_index
+import store_metrics
 
 ACTIVE_CLIENT = None
 
@@ -56,7 +57,7 @@ def ccu_enabled(config):
 def request_limits(config, catalog, mode=None, full=False):
     settings = config['collection']
     mode = mode or settings.get('default_mode', 'both')
-    if mode not in {'ccu', 'news', 'both'}:
+    if mode not in {'ccu', 'news', 'both', 'metadata'}:
         raise ValueError('invalid_collection_mode')
     mapped = sum(bool(g.get('demo_app_id')) for g in catalog['games'])
     sources = sum(len(set(filter(None, [g['app_id'], g.get('demo_app_id')])))
@@ -67,6 +68,8 @@ def request_limits(config, catalog, mode=None, full=False):
         ccu = 0
     if mode == 'ccu':
         news = 0
+    if mode == 'metadata':
+        ccu = news = 0
     return ccu, news
 
 
@@ -276,6 +279,11 @@ def collection_metadata(config, catalog):
             'cadence_basis': 'configured_budget_rotation_not_guaranteed',
             'ccu_collection': {'enabled': ccu_enabled(config),
                                'mode': 'scheduled' if ccu_enabled(config) else 'stopped_preserved_history'},
+            'metadata_collection': {'enabled': store_metrics.enabled(config),
+                                    'target_interval_minutes': store_metrics.target_interval(config, catalog),
+                                    'metrics': list(store_metrics.METRICS),
+                                    'scope': 'base_app_KR_koreana_store_summary_filtered'},
+            'followers_collection': {'enabled': False, 'reason': 'verified_source_unavailable'},
             'wishlist_numeric_collection': {'mode': 'reviewed_disclosures_only',
                                             'scheduled': False,
                                             'target_interval_minutes': None}}
@@ -319,6 +327,8 @@ def build_indexes(root, config=None, catalog=None, now=None):
                           "current": latest["value"] if latest else None,
                           "last_error_code": last.get("error_code") if last else None,
                           "observation_history": observation_history(rows, end),
+                          "metrics": store_metrics.summaries(history['samples'], config, catalog,
+                                                             game, end),
                           "news_history": news_history(history['events']),
                           "ranges": ranges, "news_status": news.get("status", "pending"),
                           "last_news_attempt_at": news.get("last_attempt_at"),
@@ -382,9 +392,10 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
     mapped = [g for g in games if g.get("demo_app_id")]
     news_sources = [(g, app) for g in games for app in dict.fromkeys(filter(None, [g["app_id"], g.get("demo_app_id")]))]
     ccu_limit, news_limit = request_limits(config, catalog, mode, full)
-    if not ccu_limit and not news_limit:
+    metadata_limit = store_metrics.request_limit(config, catalog, mode, full)
+    if not ccu_limit and not news_limit and not metadata_limit:
         return build_indexes(root, config, catalog, now)
-    lease = reserve(root, config, run_id, ccu_limit + news_limit)
+    lease = reserve(root, config, run_id, ccu_limit + news_limit + metadata_limit)
     state = read_state(root)
     if lease["completed"]:
         return build_indexes(root, config, catalog, now)
@@ -397,6 +408,7 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
                             max_seconds=max_seconds)
     ACTIVE_CLIENT = client
     channel_ccu, channel_news = {"used": 0, "limit": ccu_limit}, {"used": 0, "limit": news_limit}
+    channel_metadata = {'used': 0, 'limit': metadata_limit}
     histories = {}
     history_lock = threading.Lock()
 
@@ -444,6 +456,61 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
         hist["samples"].append(sample)
         save_history(gid)
         return "attempted"
+
+    # One pass per run. Each game's TTL is independent; interrupted runs resume fairly.
+    metadata_processed = 0
+    metadata_cursor = state.get('metadata_cursor', 0)
+    metadata_interval = store_metrics.target_interval(config, catalog)
+    pending = []
+
+    def metadata_batch(batch):
+        if not batch:
+            return True
+        error, items = None, {}
+        try:
+            items = store_metrics.response_items(client.get(store_metrics.request_url(batch),
+                                                            channel_metadata), batch)
+        except Paused:
+            return False
+        except Exception as exc:
+            error = error_code(exc)
+        finished = datetime.now(UTC)
+        if finished >= stop:
+            return False
+        for game in batch:
+            hist = get_history(game['id'])
+            hist['samples'].extend(store_metrics.observations(
+                game, items.get(game['app_id']), stamp(finished), error=error, batch_size=len(batch)))
+            save_history(game['id'])
+        return True
+
+    if metadata_limit:
+        for game in rotated(games, metadata_cursor):
+            hist = get_history(game['id'])
+            previous = [s for s in hist['samples'] if s['metric'] in store_metrics.METRICS]
+            last = max((parse(s['observed_at']) for s in previous), default=None)
+            due = last is None or (not missing_only and
+                                  (datetime.now(UTC) - last).total_seconds() >= metadata_interval * 60)
+            if due:
+                pending.append(game)
+            # Pending must finish before skipped entries may advance the cursor.
+            metadata_processed += 1
+            if len(pending) == 100:
+                if not metadata_batch(pending):
+                    metadata_processed -= len(pending)
+                    break
+                pending = []
+                state['metadata_cursor'] = (metadata_cursor + metadata_processed) % max(1, len(games))
+                if channel_metadata['used'] >= metadata_limit or client.reason:
+                    break
+        else:
+            if not metadata_batch(pending):
+                # Conservative restart at the beginning of this pass; already stored TTLs skip.
+                metadata_processed = 0
+            pending = []
+        # A pause must never advance past an unobserved pending batch.
+        if not pending:
+            state['metadata_cursor'] = (metadata_cursor + metadata_processed) % max(1, len(games))
 
     priority = settings.get("priority_game_ids", [])
     fair_games = mapped if full else [g for g in mapped if g["id"] not in priority]
@@ -516,6 +583,7 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
     state["reservations"][run_id]["completed"] = True
     state["last_run"] = {"run_id": run_id, "started_at": started, "finished_at": stamp(finished),
                          "ccu_requests": channel_ccu["used"], "news_requests": channel_news["used"],
+                         "metadata_requests": channel_metadata['used'],
                          "request_count": client.used, "reserved_requests": lease["allowance"],
                          "pause_reason": client.reason,
                          "ccu_games_attempted": sum(v == "attempted" for v in outcomes.values()),
@@ -536,7 +604,7 @@ def main():
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--full", action="store_true")
     parser.add_argument("--missing-only", action="store_true")
-    parser.add_argument("--mode", choices=["ccu", "news", "both"])
+    parser.add_argument("--mode", choices=["ccu", "news", "both", "metadata"])
     parser.add_argument("--run-id")
     parser.add_argument("--spacing", type=float)
     parser.add_argument("--max-seconds", type=int, default=840)
@@ -557,7 +625,8 @@ def main():
             parser.error("--reserve-only requires --run-id")
         catalog = load_json(args.root / 'site/data/catalog.json')
         ccu_limit, news_limit = request_limits(config, catalog, args.mode, args.full)
-        lease = reserve(args.root, config, args.run_id, ccu_limit + news_limit)
+        metadata_limit = store_metrics.request_limit(config, catalog, args.mode, args.full)
+        lease = reserve(args.root, config, args.run_id, ccu_limit + news_limit + metadata_limit)
         print(json.dumps(lease))
         return
     summary = (build_indexes(args.root) if args.build_only else

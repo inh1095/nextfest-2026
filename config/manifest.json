@@ -9,13 +9,16 @@
     "verified_at": "2026-10-20T07:01:09Z"
   },
   "collection": {
-    "ccu_enabled": false,
-    "default_mode": "news",
+    "ccu_enabled": true,
+    "default_mode": "both",
+    "metadata_enabled": true,
+    "metadata_request_budget": 100,
+    "metadata_interval_minutes": 240,
     "interval_minutes": 20,
     "news_interval_minutes": 180,
     "stops_at": "2026-10-26T17:00:00Z",
-    "ccu_request_budget": 700,
-    "news_request_budget": 1000,
+    "ccu_request_budget": 550,
+    "news_request_budget": 600,
     "daily_request_budget": 90000,
     "min_request_interval_seconds": 0.5,
     "priority_game_ids": [

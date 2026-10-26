@@ -10,6 +10,7 @@ from collect import ROOT, load_json, parse, stamp
 from fleet import (adjacent, range_summary, target_minutes, observation_history,
                    news_history, collection_metadata, ccu_enabled)
 from wishlist import build_index as build_wishlist_index
+import store_metrics
 
 
 def require(condition, message):
@@ -68,7 +69,7 @@ def validate_history(data, game_ids, start, stop):
     seen = set()
     for sample in data['samples']:
         require(sample['game_id'] in game_ids, 'unknown_sample_game')
-        require(sample['metric'] in {'demo_ccu', 'followers'}, 'unknown_sample_metric')
+        require(sample['metric'] in {'demo_ccu', 'followers', *store_metrics.METRICS}, 'unknown_sample_metric')
         at = parse(sample['observed_at'])
         require(start <= at < stop, 'sample_outside_observation_window')
         key = (sample['game_id'], sample['metric'], sample['observed_at'])
@@ -81,6 +82,15 @@ def validate_history(data, game_ids, start, stop):
         else:
             require(sample['status'] in {'error', 'unavailable'}, 'unknown_sample_status')
             require(sample['value'] is None, 'missing_value_must_be_null')
+        if sample['metric'] in store_metrics.METRICS:
+            store_metrics.validate_sample(sample)
+    review_counts = {(s['game_id'], s['observed_at']): s for s in data['samples']
+                     if s['metric'] == 'review_count'}
+    for sample in data['samples']:
+        if sample['metric'] == 'review_positive_percent' and sample['status'] == 'ok':
+            count = review_counts.get((sample['game_id'], sample['observed_at']))
+            require(count is not None and count['status'] == 'ok' and count['value'] > 0,
+                    'review_percentage_without_reviews')
     events = {}
     for event in data['events']:
         require(event['id'] not in events, 'duplicate_event')
@@ -98,7 +108,8 @@ def validate_history(data, game_ids, start, stop):
         begins, ends, reviewed = parse(analysis['from']), parse(analysis['to']), parse(analysis['reviewed_at'])
         require(start <= begins <= ends < stop and ends <= reviewed, 'invalid_analysis_window')
         samples = {s['observed_at']: s for s in data['samples']
-                   if s['game_id'] == analysis['game_id'] and s['status'] == 'ok'}
+                   if s['game_id'] == analysis['game_id'] and s['status'] == 'ok'
+                   and s['metric'] == analysis.get('metric', 'demo_ccu')}
         require(bool(analysis['evidence_sample_times']), 'analysis_sample_evidence_missing')
         for at in analysis['evidence_sample_times']:
             require(at in samples and begins <= parse(at) <= ends, 'invalid_analysis_sample_reference')
@@ -155,6 +166,14 @@ def validate(root: Path = ROOT):
         require(bool(game['participation']['evidence_excerpt']), 'participation_evidence_missing')
         hist = load_json(root / 'site/data/games' / f'{gid}.json')
         validate_history(hist, {gid}, start, stop)
+        for sample in hist['samples']:
+            require(parse(sample['observed_at']) <= window_end, 'sample_after_summary_window')
+            if sample['metric'] in store_metrics.METRICS:
+                store_metrics.validate_sample(sample, game)
+        require_same_json(rows[gid].get('metrics'),
+                          store_metrics.summaries(hist['samples'], config, catalog, game,
+                                                  window_end),
+                          'summary_store_metrics_mismatch:' + gid)
         counts['samples'] += len(hist['samples'])
         counts['events'] += len(hist['events'])
         expected, samples = expected_ccu_summary(hist, game, config, full_interval, start, window_end)

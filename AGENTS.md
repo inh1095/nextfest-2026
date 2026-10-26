@@ -1,14 +1,14 @@
 # Next Fest 2026
 
 - Public static research site for `inh1095/nextfest-2026`.
-- Wishlist evidence is the primary product. Default pages show reviewed publisher claims, prior statements, unreviewed numeric mentions and source events; CCU is a historical auxiliary view only.
+- Wishlist evidence is the primary product. Default pages show reviewed publisher claims, prior statements, unreviewed numeric mentions and source events alongside collected CCU, store reviews and prices. Followers remain unavailable until a source is verified.
 - The user clarified on 2026-10-21 that wishlist priority must not replace the original multi-metric analysis with an announcement-only list. Keep historical CCU statistics, charts, comparisons and event context readily accessible alongside wishlist evidence. Every number must name its metric and retain its meaning, time and operator.
 - The user clarified on 2026-10-22 that clicking a game must open a readable overview with actual graphs visible immediately, not just links to charts behind another metric tab. Include available CCU history, wishlist announcement history and official news/video context. Never connect incomparable wishlist claims into a growth line or invent unavailable metrics to fill the screen.
 - The game catalog itself must expose the available multi-metric evidence, not only link to a richer detail page. Prefer aligned data rows and an on-demand single-game preview over repeated large announcement cards. Keep mobile legibility and metric meaning when simplifying the site's appearance.
 - Use plain Korean labels such as `동접 기록` and `최대 증가`. The wishlist column sorts by publication date with an explicit direction, never by incompatible claim totals. Keep missing values last in either direction and preserve active filters.
 - Use the exact user-requested metric name `위시리스트(찜)` throughout authored UI text. Keep original source quotations, news, game names, stored evidence and machine keys unchanged. Long labels must remain readable on mobile.
 - Failed or pending wishlist-file requests are distinct from a successful lookup with no reviewed records. Counts of disclosure records are not announcement counts, and index generation time is not a new source review. Keep selected time-window bounds visible on mobile and make direct news links reveal the selected detail.
-- The user explicitly stopped automatic CCU collection on 2026-10-21. Honor `collection.ccu_enabled=false` in every collection mode and preserve all existing CCU records. Do not restart it without a new user request.
+- On 2026-10-26 the user explicitly requested renewed CCU collection plus followers, reviews and prices for the full catalog while keeping wishlists primary. This supersedes the 2026-10-21 CCU stop. Preserve all old records and the unobserved gap; collect new samples from the actual restart time. Only use verified metric definitions and sources, and keep unavailable values distinct from zero.
 - A numeric wishlist mention is a review candidate, not a confirmed count. Never automatically promote keyword matches, future targets or giveaway thresholds to reviewed disclosures.
 - Preserve observations. Missing or failed readings are null, never zero.
 - Steam base and demo AppIDs must remain separate.
