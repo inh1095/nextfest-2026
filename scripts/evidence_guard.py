@@ -20,7 +20,8 @@ def signature(record):
 
 def require_preserved(before, after, path):
     count = 0
-    for field in EVIDENCE_FIELDS:
+    fields = EVIDENCE_FIELDS + (('games', 'sources') if str(path) == 'config/game-context.json' else ())
+    for field in fields:
         previous = Counter(map(signature, before.get(field, [])))
         current = Counter(map(signature, after.get(field, [])))
         if previous - current:
@@ -38,7 +39,8 @@ def check_evidence(root: Path = ROOT, baseline_ref: str = "HEAD"):
                    f"{baseline_ref}^{{commit}}").decode().strip()
     paths = git("ls-tree", "-r", "-z", "--name-only", revision, "--",
                 "site/data/games/", "site/data/observations.json",
-                "config/wishlist-evidence.json", "site/data/wishlists.json").decode().split("\0")
+                "config/wishlist-evidence.json", "site/data/wishlists.json",
+                "config/game-context.json").decode().split("\0")
     paths = [p for p in paths if p.endswith(".json")]
     if not paths:
         raise ValueError("baseline_has_no_evidence")

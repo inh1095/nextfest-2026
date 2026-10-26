@@ -11,6 +11,7 @@ from fleet import (adjacent, range_summary, target_minutes, observation_history,
                    news_history, collection_metadata, ccu_enabled)
 from wishlist import build_index as build_wishlist_index
 import store_metrics
+from game_context import public_config
 
 
 def require(condition, message):
@@ -122,7 +123,9 @@ def validate(root: Path = ROOT):
     config = load_json(root / 'config/manifest.json')
     public = load_json(root / 'site/data/config.json')
     original = load_json(root / 'site/data/observations.json')
-    require(config == public, 'public_config_mismatch')
+    context_catalog = (load_json(root / 'site/data/catalog.json') if config['schema_version'] == 2
+                       else {'games': config['games']})
+    require_same_json(public_config(root, config, context_catalog), public, 'public_config_mismatch')
     start, stop = parse(config['event']['starts_at']), parse(config['collection']['stops_at'])
     require(start < stop, 'collection_window')
     require(stop == parse(config['event']['ends_at']), 'unexpected_post_event_collection')

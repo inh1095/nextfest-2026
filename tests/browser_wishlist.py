@@ -80,6 +80,32 @@ with sync_playwright() as p:
     assert not errors,errors
     page.close()
     print('PASS wishlist-first overview/default navigation, candidates separate from announcements, visible archived CCU signals and official news')
+    page,errors,_=open_page(browser)
+    expect(page.locator('#game-profile-metrics')).to_have_count(0)
+    expect(page.locator('#game-background')).to_contain_text('본편 3161310')
+    expect(page.locator('#game-background')).to_contain_text('Windup')
+    expect(page.locator('#game-background')).to_contain_text('Knights Peak')
+    expect(page.locator('#game-background')).to_contain_text('1 Dec, 2026')
+    expect(page.locator('#game-background')).to_contain_text('자료 저장 · 개별 확인시각 미기재')
+    expect(page.locator('.game-video-list')).to_contain_text('Hela: of Mice & Magic by Windup Games')
+    expect(page.locator('#game-reviews')).to_contain_text('저장된 검토 기록')
+    expand(page,'saved-review-hela-0')
+    expect(page.locator('#game-reviews')).to_contain_text('검토 대상 기간')
+    expect(page.locator('#game-reviews')).to_contain_text('2026.10.20 15:59')
+    expect(page.locator('#game-reviews')).to_contain_text('근거 부족')
+    expect(page.locator('#game-reviews')).to_contain_text('159명')
+    assert page.locator('#game-reviews .review-sources a').count()>0
+    expect(page.locator('.integrated-increases li').first).to_contain_text('%')
+    expect(page.locator('.integrated-increases li').first).to_contain_text('간격')
+    summaries=page.locator('.context-news details');assert summaries.count()>0
+    summaries.first.locator('summary').click()
+    expect(summaries.first.locator('.context-summary')).to_be_visible()
+    expect(page.locator('.game-video-list')).to_contain_text('공식 영상')
+    expect(page.locator('.context-video')).to_have_count(2)
+    assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');assert not errors,errors
+    page.close()
+    print('PASS integrated game context: increase percentages/gaps, news summaries, videos and dated historical review sources')
+
 
     page,errors,requests=open_page(browser)
     expect(page.locator('#wishlist-disclosures')).to_contain_text('100,000건 초과')

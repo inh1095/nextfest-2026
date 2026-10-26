@@ -21,6 +21,7 @@ from collect import (ROOT, UTC, USER_AGENT, ccu_url, error_code,
                      load_json, news_events, parse, parse_ccu, stamp)
 from wishlist import build_index as build_wishlist_index
 import store_metrics
+from game_context import public_config
 
 ACTIVE_CLIENT = None
 
@@ -365,7 +366,7 @@ def build_indexes(root, config=None, catalog=None, now=None):
     save(root / "site/data/summary.json", summary)
     save(root / "site/data/events-index.json", {"schema_version": 2, "generated_at": stamp(now),
          "events": sorted(events.values(), key=lambda e: e.get("published_at") or "", reverse=True)})
-    save(root / "site/data/config.json", config)
+    save(root / "site/data/config.json", public_config(root, config, catalog))
     save(root / "site/data/wishlists.json", build_wishlist_index(root, catalog, now, events=wishlist_events))
     return summary
 
