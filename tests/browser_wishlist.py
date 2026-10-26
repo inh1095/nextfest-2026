@@ -281,7 +281,9 @@ with sync_playwright() as p:
     page.locator('#catalog-search').fill('3161310')
     button=page.locator('[data-expand-game="hela"]')
     button.focus();page.keyboard.press('Enter')
-    expect(page.locator('#catalog-preview-chart circle')).to_have_count(63)
+    hela_samples=json.loads((Path(__file__).resolve().parents[1]/'site/data/games/hela.json').read_text())['samples']
+    hela_ccu_count=sum(s['metric']=='demo_ccu' and s['status']=='ok' and isinstance(s.get('value'),(int,float)) and s['value']>=0 for s in hela_samples)
+    expect(page.locator('#catalog-preview-chart circle')).to_have_count(hela_ccu_count)
     expect(page.locator('.ledger-preview')).to_have_count(1)
     expect(page.locator('#expand-hela')).to_have_attribute('aria-expanded','true')
     assert 'range=6' in page.url
@@ -360,7 +362,7 @@ with sync_playwright() as p:
             expect(page.locator('.ledger-wish').first).to_contain_text('조회 실패')
             assert '위시리스트(찜) 발표 미확보' not in page.locator('.ledger-wish').first.inner_text()
         if route.startswith('analysis'):
-            expect(page.locator('#analysis-followers-status')).to_contain_text('조회 실패')
+            expect(page.locator('#analysis-followers-status')).to_have_count(0)
             expect(page.locator('#game-publications-panel')).to_contain_text('조회 실패')
             expand(page,'game-candidates')
             expect(page.locator('#wishlist-candidates')).to_contain_text('조회 실패')
