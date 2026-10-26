@@ -104,6 +104,8 @@ python3 -m http.server 8765 --bind 127.0.0.1 --directory site
 python3 scripts/fleet.py --build-only
 # 활성 지표 수집; 다른 수집 실행과 동시에 실행하지 않음
 python3 scripts/fleet.py --run-id unique-run-id
+# 전체 자동 수집과 겹치지 않게, 미관측 또는 직전 상점 지표 3종이 모두 실패한 게임만 재조회
+python3 scripts/fleet.py --mode metadata --missing-only --run-id unique-retry-id
 ```
 
 실행 전 예약 예산을 보존해야 합니다. Actions는 예약 상태를 원격에 먼저 커밋합니다. 중단된 실행의 ID를 재사용하지 않고 새 ID로 새 예산을 예약합니다. `ccu_enabled=false`는 `--mode ccu`와 `--full`에도 적용됩니다. `scripts/collect.py`는 이전 두 게임용 회귀검증 코드이며 운영 schema 또는 CCU 중단 설정을 받으면 쓰기·수집 전에 거부합니다.
@@ -123,6 +125,7 @@ python3 scripts/fleet.py --run-id unique-run-id
 | `site/data/observations.json`, `.csv` | 확장 이전 두 게임의 원본 기록 보존본 |
 | `docs/catalog-evidence.json` | SOL의 공식 목록 대조·배치 조회 근거 |
 | `docs/metrics-source-audit-20261026.json` | 신규 지표의 SOL 표본 대조·필드 정의·예외와 한계 |
+| `docs/metrics-collection-audit-20261026.json` | 최초 전체 상점 수집·한정 재조회·기존 기록 보존의 SOL 감사 |
 | `docs/fleet-design.md` | 전체 게임 확장 설계·검토 기록 |
 | `.github/workflows/monitor.yml` | 예약·수집·검증·게시·종료 |
 

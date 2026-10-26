@@ -489,8 +489,10 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
             hist = get_history(game['id'])
             previous = [s for s in hist['samples'] if s['metric'] in store_metrics.METRICS]
             last = max((parse(s['observed_at']) for s in previous), default=None)
-            due = last is None or (not missing_only and
-                                  (datetime.now(UTC) - last).total_seconds() >= metadata_interval * 60)
+            due = (last is None or (missing_only and store_metrics.retryable_failure(previous)
+                                    and last < parse(stamp(datetime.now(UTC)))) or
+                   (not missing_only and
+                    (datetime.now(UTC) - last).total_seconds() >= metadata_interval * 60))
             if due:
                 pending.append(game)
             # Pending must finish before skipped entries may advance the cursor.

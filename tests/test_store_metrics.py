@@ -78,6 +78,40 @@ class StoreParserTests(unittest.TestCase):
             with self.assertRaises(ValueError):
                 sm.response_items({'response': {'store_items': items}}, [GAME])
 
+    def test_failed_item_zero_appid_is_isolated_without_relaxing_success_mapping(self):
+        other = {'id': 'b', 'app_id': 20}
+        failed = {'id': 20, 'appid': 0, 'item_type': 0, 'success': 15}
+        result = sm.response_items({'response': {'store_items': [item(), failed]}}, [GAME, other])
+        self.assertEqual(sm.observations(GAME, result[10], stamp(NOW))[0]['value'], 20)
+        for row in sm.observations(other, result[20], stamp(NOW)):
+            self.assertEqual(row['status'], 'unavailable')
+            self.assertIsNone(row['value'])
+            self.assertEqual(row['context']['store_item_success'], 15)
+        for app in (None, 20):
+            allowed = dict(failed, appid=app)
+            if app is None:
+                allowed.pop('appid')
+            self.assertEqual(len(sm.response_items({'response': {'store_items': [allowed]}}, [other])), 1)
+        for changed in [dict(failed, success=1), dict(failed, appid=10),
+                        dict(failed, appid=False), dict(failed, id=999), dict(failed, success=True)]:
+            with self.assertRaises(ValueError):
+                sm.response_items({'response': {'store_items': [changed]}}, [GAME, other])
+        with self.assertRaises(ValueError):
+            sm.response_items({'response': {'store_items': [failed, failed]}}, [other])
+
+    def test_retry_requires_latest_complete_same_time_error_batch(self):
+        errors = sm.observations(GAME, None, stamp(NOW), error='network_error')
+        self.assertTrue(sm.retryable_failure(errors))
+        self.assertFalse(sm.retryable_failure(errors[:2]))
+        changed = copy.deepcopy(errors)
+        changed[2]['observed_at'] = stamp(NOW + timedelta(seconds=1))
+        self.assertFalse(sm.retryable_failure(changed))
+        for status in ('ok', 'unavailable'):
+            changed = copy.deepcopy(errors)
+            changed[0]['status'] = status
+            changed[0]['value'] = 0 if status == 'ok' else None
+            self.assertFalse(sm.retryable_failure(changed))
+
     def test_bundle_offer_is_not_single_game_price(self):
         value = item()
         value['best_purchase_option']['included_game_count'] = 3
@@ -215,6 +249,31 @@ class StoreCollectionTests(unittest.TestCase):
         self.assertEqual(result['last_run']['metadata_requests'], 1)
         self.assertEqual(len(load_json(history_path(self.root, 'g-100'))['samples']), 3)
         self.assertEqual(len(load_json(history_path(self.root, 'g-0'))['samples']), 3)
+
+    def test_missing_only_recovers_recent_errors_without_rewriting_or_retrying_normal_zero(self):
+        self.enable()
+        StoreFakeClient.fail_metadata = True
+        collect_fleet(self.root, mode='metadata', client_factory=StoreFakeClient, run_id='failed')
+        a_before = load_json(history_path(self.root, 'a'))
+        b = load_json(history_path(self.root, 'b'))
+        b['samples'] = sm.observations({'id': 'b', 'app_id': 20}, item(20, count=0, percent=0),
+                                        b['samples'][0]['observed_at'])
+        save(history_path(self.root, 'b'), b)
+        StoreFakeClient.fail_metadata = False
+        ordinary = collect_fleet(self.root, mode='metadata', client_factory=StoreFakeClient, run_id='ttl')
+        self.assertEqual(ordinary['last_run']['metadata_requests'], 0)
+        # Recovery is a later actual observation; the immutable failure timestamp remains unchanged.
+        import time
+        while stamp(datetime.now(UTC)) == a_before['samples'][0]['observed_at']:
+            time.sleep(.02)
+        recovered = collect_fleet(self.root, mode='metadata', missing_only=True,
+                                  client_factory=StoreFakeClient, run_id='retry')
+        self.assertEqual(recovered['last_run']['metadata_requests'], 1)
+        after = load_json(history_path(self.root, 'a'))
+        self.assertEqual(after['samples'][:3], a_before['samples'])
+        self.assertEqual(len(after['samples']), 6)
+        self.assertTrue(all(s['status'] == 'ok' for s in after['samples'][3:]))
+        self.assertEqual(load_json(history_path(self.root, 'b'))['samples'], b['samples'])
 
 
 class StoreSummaryIntegrityTests(unittest.TestCase):

@@ -63,15 +63,35 @@ def response_items(data, games):
     for item in items:
         if not isinstance(item, dict):
             raise ValueError('invalid_store_item')
-        app = item.get('appid', item.get('id'))
+        app = item.get('id')
         if type(app) is not int or app not in expected or app in result:
             raise ValueError('store_response_mapping_mismatch')
-        if (type(item.get('id')) is not int or item['id'] != app or
-                type(item.get('item_type')) is not int or item['item_type'] != 0):
+        if type(item.get('item_type')) is not int or item['item_type'] != 0:
+            raise ValueError('store_response_mapping_mismatch')
+        success, returned_app = item.get('success'), item.get('appid')
+        if type(success) is not int or success < 0:
+            raise ValueError('invalid_store_result')
+        if success == 1:
+            if type(returned_app) is not int or returned_app != app:
+                raise ValueError('store_response_mapping_mismatch')
+        elif returned_app is not None and (type(returned_app) is not int or returned_app not in (0, app)):
+            # Failed items may anonymize appid to zero, but id still has to be the requested app.
             raise ValueError('store_response_mapping_mismatch')
         result[app] = item
     # Missing items are explicit errors for their own game, not a fabricated zero.
     return result
+
+
+def retryable_failure(samples):
+    """Only a complete latest, same-time three-metric error batch can bypass the TTL."""
+    latest = {}
+    for sample in samples:
+        key = sample['metric']
+        if key in METRICS and (key not in latest or sample['observed_at'] > latest[key]['observed_at']):
+            latest[key] = sample
+    return (set(latest) == set(METRICS) and
+            all(s['status'] == 'error' for s in latest.values()) and
+            len({s['observed_at'] for s in latest.values()}) == 1)
 
 
 def integer(value):
@@ -111,6 +131,7 @@ def observations(game, item, at, *, error=None, batch_size=1):
             sample.update(status='error', error_code=error or 'store_item_missing')
             continue
         if type(item.get('success')) is not int or item['success'] != 1:
+            ctx['store_item_success'] = item.get('success')
             sample['error_code'] = 'store_item_unavailable'
             continue
         try:

@@ -1,0 +1,517 @@
+{
+  "schema_version": 1,
+  "description": "Read-only independent audit of the first expanded collection and the bounded retry; original observations, including failures, retained.",
+  "first_collection": {
+    "audited_at": "2026-10-26T01:06:46.743737+00:00",
+    "summary_generated_at": "2026-10-26T01:05:25Z",
+    "last_run": {
+      "run_id": "gh-40251612560-1",
+      "started_at": "2026-10-26T00:55:12Z",
+      "finished_at": "2026-10-26T01:05:25Z",
+      "ccu_requests": 550,
+      "news_requests": 600,
+      "metadata_requests": 72,
+      "request_count": 1222,
+      "reserved_requests": 1250,
+      "pause_reason": null,
+      "ccu_games_attempted": 550,
+      "news_sources_attempted": 600
+    },
+    "coverage": {
+      "catalog_total": 7164,
+      "demo_resolved": 7163,
+      "ccu_attempted": 7163,
+      "ccu_ok": 7163,
+      "ccu_pending": 0,
+      "ccu_error": 0,
+      "ccu_unavailable": 1,
+      "comparison_ready": 7163,
+      "news_checked": 7164,
+      "news_pending": 0,
+      "growth_candidate_games": 4909,
+      "reviewed_games": 2
+    },
+    "collection": {
+      "ccu_enabled": true,
+      "default_mode": "both",
+      "metadata_enabled": true,
+      "metadata_request_budget": 100,
+      "metadata_interval_minutes": 240,
+      "interval_minutes": 20,
+      "news_interval_minutes": 180,
+      "stops_at": "2026-10-26T17:00:00Z",
+      "ccu_request_budget": 550,
+      "news_request_budget": 600,
+      "daily_request_budget": 90000,
+      "min_request_interval_seconds": 0.5,
+      "priority_game_ids": [
+        "hela",
+        "lethal-wedding"
+      ],
+      "max_run_seconds": 840,
+      "scheduled_interval_minutes": 20,
+      "target_cycle_minutes": 280,
+      "news_source_count": 14327,
+      "news_target_cycle_minutes": 480,
+      "cadence_basis": "configured_budget_rotation_not_guaranteed",
+      "ccu_collection": {
+        "enabled": true,
+        "mode": "scheduled"
+      },
+      "metadata_collection": {
+        "enabled": true,
+        "target_interval_minutes": 240,
+        "metrics": [
+          "review_count",
+          "review_positive_percent",
+          "price_final"
+        ],
+        "scope": "base_app_KR_koreana_store_summary_filtered"
+      },
+      "followers_collection": {
+        "enabled": false,
+        "reason": "verified_source_unavailable"
+      },
+      "wishlist_numeric_collection": {
+        "mode": "reviewed_disclosures_only",
+        "scheduled": false,
+        "target_interval_minutes": null
+      }
+    },
+    "catalog_games": 7164,
+    "record_counts": {
+      "samples:demo_ccu": 49696,
+      "samples:price_final": 7164,
+      "samples:review_count": 7164,
+      "samples:review_positive_percent": 7164,
+      "events:announcement": 13791,
+      "events:update": 6477,
+      "samples:followers": 2,
+      "events:video": 3
+    },
+    "preserved_record_count": 69416,
+    "missing_or_changed_original_records": 0,
+    "wishlist_evidence_unchanged": true,
+    "catalog_unchanged": true,
+    "new_metadata_sample_counts": {
+      "price_final": 7164,
+      "review_count": 7164,
+      "review_positive_percent": 7164
+    },
+    "metadata_sample_status": {
+      "review_count": {
+        "ok": 7062,
+        "error": 100,
+        "unavailable": 2
+      },
+      "review_positive_percent": {
+        "unavailable": 7057,
+        "error": 100,
+        "ok": 7
+      },
+      "price_final": {
+        "unavailable": 6823,
+        "ok": 241,
+        "error": 100
+      }
+    },
+    "metadata_game_latest_status": {
+      "review_count": {
+        "ok": 7062,
+        "error": 100,
+        "unavailable": 2
+      },
+      "review_positive_percent": {
+        "unavailable": 7057,
+        "error": 100,
+        "ok": 7
+      },
+      "price_final": {
+        "unavailable": 6823,
+        "ok": 241,
+        "error": 100
+      }
+    },
+    "metadata_context_counts": {
+      "review_count": {
+        "{\"app_scope\": \"base\", \"country\": \"KR\", \"currency\": null, \"divisor\": null, \"language\": \"koreana\", \"review_scope\": \"store_summary_filtered\"}": 7164
+      },
+      "review_positive_percent": {
+        "{\"app_scope\": \"base\", \"country\": \"KR\", \"currency\": null, \"divisor\": null, \"language\": \"koreana\", \"review_scope\": \"store_summary_filtered\"}": 7164
+      },
+      "price_final": {
+        "{\"app_scope\": \"base\", \"country\": \"KR\", \"currency\": null, \"divisor\": 100, \"language\": \"koreana\", \"review_scope\": null}": 6923,
+        "{\"app_scope\": \"base\", \"country\": \"KR\", \"currency\": \"KRW\", \"divisor\": 100, \"language\": \"koreana\", \"review_scope\": null}": 241
+      }
+    },
+    "zero_counts": {
+      "review_count_zero": 7055,
+      "free": 218
+    },
+    "demo_ccu_observed_from": "2026-10-20T06:59:20Z",
+    "demo_ccu_observed_to": "2026-10-26T01:00:22Z",
+    "metadata_observed_from": "2026-10-26T00:55:12Z",
+    "metadata_observed_to": "2026-10-26T00:55:47Z",
+    "error_count": 0,
+    "error_examples": []
+  },
+  "first_collection_details": {
+    "new_ccu": 550,
+    "new_ccu_status": {
+      "ok": 550
+    },
+    "new_ccu_zero": 405,
+    "new_ccu_positive": 145,
+    "new_ccu_source_or_value_errors": [],
+    "review_unavailable_games": [
+      {
+        "id": "steam-5070510",
+        "appid": 5070510,
+        "name": "Carom Crashers",
+        "error": "store_item_unavailable"
+      },
+      {
+        "id": "steam-5087940",
+        "appid": 5087940,
+        "name": "DuskLand",
+        "error": "store_item_unavailable"
+      }
+    ],
+    "price_ok_free": 218,
+    "price_ok_paid_offers": 23,
+    "seeds": {
+      "hela": {
+        "latest_ccu": {
+          "game_id": "hela",
+          "metric": "demo_ccu",
+          "observed_at": "2026-10-26T00:55:54Z",
+          "value": 115,
+          "status": "ok",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+          "error_code": null
+        },
+        "metadata": [
+          {
+            "metric": "price_final",
+            "status": "unavailable",
+            "value": null,
+            "observed_at": "2026-10-26T00:55:14Z",
+            "error_code": "price_not_announced"
+          },
+          {
+            "metric": "review_count",
+            "status": "ok",
+            "value": 0,
+            "observed_at": "2026-10-26T00:55:14Z",
+            "error_code": null
+          },
+          {
+            "metric": "review_positive_percent",
+            "status": "unavailable",
+            "value": null,
+            "observed_at": "2026-10-26T00:55:14Z",
+            "error_code": "no_reviews"
+          }
+        ]
+      },
+      "lethal-wedding": {
+        "latest_ccu": {
+          "game_id": "lethal-wedding",
+          "metric": "demo_ccu",
+          "observed_at": "2026-10-26T00:55:48Z",
+          "value": 0,
+          "status": "ok",
+          "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+          "error_code": null
+        },
+        "metadata": [
+          {
+            "metric": "price_final",
+            "status": "unavailable",
+            "value": null,
+            "observed_at": "2026-10-26T00:55:25Z",
+            "error_code": "price_not_announced"
+          },
+          {
+            "metric": "review_count",
+            "status": "ok",
+            "value": 0,
+            "observed_at": "2026-10-26T00:55:25Z",
+            "error_code": null
+          },
+          {
+            "metric": "review_positive_percent",
+            "status": "unavailable",
+            "value": null,
+            "observed_at": "2026-10-26T00:55:25Z",
+            "error_code": "no_reviews"
+          }
+        ]
+      }
+    },
+    "reprobe_unique_id_count": 100,
+    "reprobe_duplicate_ids": [],
+    "reprobe_foreign_ids": []
+  },
+  "failed_item_diagnosis": {
+    "response_count": 100,
+    "requested_count": 100,
+    "missing": [
+      4307880
+    ],
+    "extra": [
+      0
+    ],
+    "bad_items": [
+      {
+        "item_type": 0,
+        "id": 4307880,
+        "success": 15,
+        "visible": false,
+        "name": "",
+        "store_url_path": "app/0/",
+        "store_url_slug": "",
+        "appid": 0
+      }
+    ],
+    "success_counts": {
+      "1": 99,
+      "15": 1
+    },
+    "app_id_present": {
+      "true": 100
+    },
+    "type_counts": {
+      "0": 100
+    }
+  },
+  "after_retry": {
+    "audited_at": "2026-10-26T01:11:11.270676+00:00",
+    "summary_generated_at": "2026-10-26T01:10:53Z",
+    "last_run": {
+      "run_id": "repair-metadata-20261026-0111",
+      "started_at": "2026-10-26T01:10:52Z",
+      "finished_at": "2026-10-26T01:10:53Z",
+      "ccu_requests": 0,
+      "news_requests": 0,
+      "metadata_requests": 1,
+      "request_count": 1,
+      "reserved_requests": 100,
+      "pause_reason": null,
+      "ccu_games_attempted": 0,
+      "news_sources_attempted": 0
+    },
+    "coverage": {
+      "catalog_total": 7164,
+      "demo_resolved": 7163,
+      "ccu_attempted": 7163,
+      "ccu_ok": 7163,
+      "ccu_pending": 0,
+      "ccu_error": 0,
+      "ccu_unavailable": 1,
+      "comparison_ready": 7163,
+      "news_checked": 7164,
+      "news_pending": 0,
+      "growth_candidate_games": 4909,
+      "reviewed_games": 2
+    },
+    "collection": {
+      "ccu_enabled": true,
+      "default_mode": "both",
+      "metadata_enabled": true,
+      "metadata_request_budget": 100,
+      "metadata_interval_minutes": 240,
+      "interval_minutes": 20,
+      "news_interval_minutes": 180,
+      "stops_at": "2026-10-26T17:00:00Z",
+      "ccu_request_budget": 550,
+      "news_request_budget": 600,
+      "daily_request_budget": 90000,
+      "min_request_interval_seconds": 0.5,
+      "priority_game_ids": [
+        "hela",
+        "lethal-wedding"
+      ],
+      "max_run_seconds": 840,
+      "scheduled_interval_minutes": 20,
+      "target_cycle_minutes": 280,
+      "news_source_count": 14327,
+      "news_target_cycle_minutes": 480,
+      "cadence_basis": "configured_budget_rotation_not_guaranteed",
+      "ccu_collection": {
+        "enabled": true,
+        "mode": "scheduled"
+      },
+      "metadata_collection": {
+        "enabled": true,
+        "target_interval_minutes": 240,
+        "metrics": [
+          "review_count",
+          "review_positive_percent",
+          "price_final"
+        ],
+        "scope": "base_app_KR_koreana_store_summary_filtered"
+      },
+      "followers_collection": {
+        "enabled": false,
+        "reason": "verified_source_unavailable"
+      },
+      "wishlist_numeric_collection": {
+        "mode": "reviewed_disclosures_only",
+        "scheduled": false,
+        "target_interval_minutes": null
+      }
+    },
+    "catalog_games": 7164,
+    "record_counts": {
+      "samples:demo_ccu": 49696,
+      "samples:price_final": 7264,
+      "samples:review_count": 7264,
+      "samples:review_positive_percent": 7264,
+      "events:announcement": 13791,
+      "events:update": 6477,
+      "samples:followers": 2,
+      "events:video": 3
+    },
+    "preserved_record_count": 91461,
+    "missing_or_changed_original_records": 0,
+    "wishlist_evidence_unchanged": true,
+    "catalog_unchanged": true,
+    "new_metadata_sample_counts": {
+      "price_final": 100,
+      "review_count": 100,
+      "review_positive_percent": 100
+    },
+    "metadata_sample_status": {
+      "review_count": {
+        "ok": 7161,
+        "error": 100,
+        "unavailable": 3
+      },
+      "review_positive_percent": {
+        "unavailable": 7157,
+        "error": 100,
+        "ok": 7
+      },
+      "price_final": {
+        "unavailable": 6920,
+        "ok": 244,
+        "error": 100
+      }
+    },
+    "metadata_game_latest_status": {
+      "review_count": {
+        "ok": 7161,
+        "unavailable": 3
+      },
+      "review_positive_percent": {
+        "unavailable": 7157,
+        "ok": 7
+      },
+      "price_final": {
+        "unavailable": 6920,
+        "ok": 244
+      }
+    },
+    "metadata_context_counts": {
+      "review_count": {
+        "{\"app_scope\": \"base\", \"country\": \"KR\", \"currency\": null, \"divisor\": null, \"language\": \"koreana\", \"review_scope\": \"store_summary_filtered\"}": 7164
+      },
+      "review_positive_percent": {
+        "{\"app_scope\": \"base\", \"country\": \"KR\", \"currency\": null, \"divisor\": null, \"language\": \"koreana\", \"review_scope\": \"store_summary_filtered\"}": 7164
+      },
+      "price_final": {
+        "{\"app_scope\": \"base\", \"country\": \"KR\", \"currency\": null, \"divisor\": 100, \"language\": \"koreana\", \"review_scope\": null}": 6920,
+        "{\"app_scope\": \"base\", \"country\": \"KR\", \"currency\": \"KRW\", \"divisor\": 100, \"language\": \"koreana\", \"review_scope\": null}": 244
+      }
+    },
+    "zero_counts": {
+      "review_count_zero": 7154,
+      "free": 221
+    },
+    "demo_ccu_observed_from": "2026-10-20T06:59:20Z",
+    "demo_ccu_observed_to": "2026-10-26T01:00:22Z",
+    "metadata_observed_from": "2026-10-26T00:55:12Z",
+    "metadata_observed_to": "2026-10-26T01:10:52Z",
+    "error_count": 0,
+    "error_examples": []
+  },
+  "retry_details": {
+    "summary_generated_at": "2026-10-26T01:10:53Z",
+    "last_run": {
+      "run_id": "repair-metadata-20261026-0111",
+      "started_at": "2026-10-26T01:10:52Z",
+      "finished_at": "2026-10-26T01:10:53Z",
+      "ccu_requests": 0,
+      "news_requests": 0,
+      "metadata_requests": 1,
+      "request_count": 1,
+      "reserved_requests": 100,
+      "pause_reason": null,
+      "ccu_games_attempted": 0,
+      "news_sources_attempted": 0
+    },
+    "preserved_record_count": 91461,
+    "missing_or_changed_original_records": 0,
+    "wishlist_evidence_unchanged": true,
+    "catalog_unchanged": true,
+    "new_metadata_sample_counts": {
+      "price_final": 100,
+      "review_count": 100,
+      "review_positive_percent": 100
+    },
+    "metadata_game_latest_status": {
+      "review_count": {
+        "ok": 7161,
+        "unavailable": 3
+      },
+      "review_positive_percent": {
+        "unavailable": 7157,
+        "ok": 7
+      },
+      "price_final": {
+        "unavailable": 6920,
+        "ok": 244
+      }
+    },
+    "zero_counts": {
+      "review_count_zero": 7154,
+      "free": 221
+    },
+    "error_count": 0,
+    "error_examples": [],
+    "repair_game_count": 100,
+    "repair_latest_review_status": {
+      "ok": 99,
+      "unavailable": 1
+    },
+    "repair_new_records": 300,
+    "old_failed_300_preserved": 300,
+    "original_69416_contained_in_pre_repair": true,
+    "unavailable_details": [
+      {
+        "game_id": "steam-4307880",
+        "app_id": 4307880,
+        "latest": {
+          "game_id": "steam-4307880",
+          "metric": "review_count",
+          "observed_at": "2026-10-26T01:10:52Z",
+          "status": "unavailable",
+          "value": null,
+          "source_url": "https://api.steampowered.com/IStoreBrowseService/GetItems/v1/",
+          "context": {
+            "app_id": 4307880,
+            "app_scope": "base",
+            "country": "KR",
+            "language": "koreana",
+            "batch_size": 100,
+            "review_scope": "store_summary_filtered",
+            "percentage_precision": "source_rounded_integer",
+            "store_item_success": 15
+          },
+          "error_code": "store_item_unavailable"
+        }
+      }
+    ]
+  }
+}
