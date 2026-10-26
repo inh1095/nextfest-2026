@@ -63,7 +63,7 @@ with sync_playwright() as p:
     expect(page.locator('#overview-ccu-signals')).to_be_visible()
     expect(page.locator('#overview-news')).to_be_visible()
     expect(page.locator('#wishlist-latest-reviews')).to_contain_text('100,000건 초과')
-    expect(page.locator('#wishlist-candidates')).to_contain_text('미검토')
+    expect(page.locator('#wishlist-candidates')).to_contain_text('공개 수치로 확정하지 않은')
     assert page.locator('#latest-changes-table').count()==0
     before_url=page.url
     page.locator('[data-overview-section="overview-news"]').click()
@@ -85,11 +85,11 @@ with sync_playwright() as p:
     expect(page.locator('#game-background')).to_contain_text('본편 3161310')
     expect(page.locator('#game-background')).to_contain_text('Windup')
     expect(page.locator('#game-background')).to_contain_text('Knights Peak')
-    expect(page.locator('#game-background')).to_contain_text('1 Dec, 2026')
-    expect(page.locator('.profile-shared-source')).to_contain_text('장르·출시 계획 · 2026.10.20 자료 저장')
-    expand(page,'profile-source-hela')
-    expect(page.locator('.profile-shared-source')).to_contain_text('개별 확인시각은 미기재')
-    expect(page.locator('.game-video-list')).to_contain_text('Hela: of Mice & Magic by Windup Games')
+    expect(page.locator('#game-background')).to_contain_text('2026.12.01')
+    expect(page.locator('#game-background')).to_contain_text('2026.10.20 자료 저장')
+    expand(page,'profile-source-hela-genres')
+    expect(page.locator('#game-background')).to_contain_text('개별 확인시각 미기재')
+    expect(page.locator('.game-video-list').first).to_contain_text('Hela: of Mice & Magic by Windup Games')
     expect(page.locator('#game-reviews')).to_contain_text('저장된 검토 기록')
     expand(page,'saved-review-hela-0')
     expect(page.locator('#game-reviews')).to_contain_text('검토 대상 기간')
@@ -102,8 +102,10 @@ with sync_playwright() as p:
     summaries=page.locator('.context-news details');assert summaries.count()>0
     summaries.first.locator('summary').click()
     expect(summaries.first.locator('.context-summary')).to_be_visible()
-    expect(page.locator('.game-video-list')).to_contain_text('공식 영상')
-    expect(page.locator('.context-video')).to_have_count(2)
+    expect(page.locator('.game-video-list').first).to_contain_text('공식 영상')
+    expect(page.locator('.game-video-list:not(.store-trailers) .context-video')).to_have_count(2)
+    expect(page.locator('.store-trailers')).to_contain_text('게시일·조회수 미제공')
+    assert page.locator('.store-trailers .context-video').count() > 0
     assert page.evaluate('document.documentElement.scrollWidth<=innerWidth');assert not errors,errors
     page.close()
     print('PASS integrated game context: increase percentages/gaps, news summaries, videos and dated historical review sources')

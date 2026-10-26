@@ -226,6 +226,26 @@ class StoreCollectionTests(unittest.TestCase):
         with self.assertRaises(Exception):
             require_preserved({'samples': old}, {'samples': changed}, 'fixture')
 
+    def test_context_backfill_runs_once_without_rewriting_existing_observations(self):
+        self.enable()
+        collect_fleet(self.root, mode='metadata', client_factory=StoreFakeClient, run_id='before-context')
+        before = load_json(history_path(self.root, 'a'))
+        self.config['collection']['context_enabled'] = True
+        save(self.root / 'config/manifest.json', self.config)
+        # Simulate the next process starting a second later, as sample keys have second precision.
+        for sample in before['samples']:
+            sample['observed_at'] = stamp(datetime.now(UTC) - timedelta(minutes=1))
+        save(history_path(self.root, 'a'), before)
+        first = collect_fleet(self.root, mode='metadata', client_factory=StoreFakeClient, run_id='context')
+        after = load_json(history_path(self.root, 'a'))
+        self.assertEqual(first['last_run']['metadata_requests'], 1)
+        self.assertEqual(after['samples'][:len(before['samples'])], before['samples'])
+        self.assertEqual(len(after['context_snapshots']), 1)
+        self.assertEqual(after['context_snapshots'][0]['app_id'], self.catalog['games'][0]['app_id'])
+        second = collect_fleet(self.root, mode='metadata', client_factory=StoreFakeClient, run_id='context-ttl')
+        self.assertEqual(second['last_run']['metadata_requests'], 0)
+        require_preserved(after, load_json(history_path(self.root, 'a')), 'context history')
+
     def test_disabled_metadata_and_event_end_do_not_call_source(self):
         result = collect_fleet(self.root, mode='metadata', client_factory=StoreFakeClient, run_id='off')
         self.assertFalse(FakeClient.calls)

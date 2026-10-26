@@ -47,10 +47,13 @@ def target_interval(config, catalog):
                settings['interval_minutes'])
 
 
-def request_url(games):
+def request_url(games, *, include_context=False):
     query = {'ids': [{'appid': g['app_id']} for g in games],
              'context': {'language': 'koreana', 'country_code': 'KR'},
              'data_request': {'include_reviews': True, 'include_release': True}}
+    if include_context:
+        from context_metrics import request_fields
+        query['data_request'].update(request_fields())
     return ENDPOINT + '?' + urlencode({'input_json': json.dumps(query, separators=(',', ':'))})
 
 

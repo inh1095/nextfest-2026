@@ -67,7 +67,9 @@ class WishlistTests(unittest.TestCase):
         self.assertEqual(index['coverage'], {'disclosure_games': 1, 'disclosures': 1,
                                             'mention_games': 1, 'mentions': 1,
                                             'candidate_games': 0, 'candidates': 0, 'current_stock_games': 0,
-                                            'followers_ok': 0, 'followers_conflict': 1})
+                                            'followers_ok': 0, 'followers_conflict': 1,
+                                            'reviewed_candidates': 0, 'excluded_candidates': 0,
+                                            'unresolved_candidates': 0})
         self.assertIsNone(index['follower_checks'][0]['value'])
         self.assertFalse(index['disclosures'][0]['usable_as_current_stock'])
         self.assertEqual(index['mentions'][0]['event_id'], 'news-a')
@@ -292,6 +294,189 @@ class WishlistTests(unittest.TestCase):
         self.assertEqual(row['previous_disclosure_id'], 'previous-day')
         self.assertIsNone(row['delta'])
         self.assertIsNone(disclosure_comparisons([base, timed])[0]['previous_disclosure_id'])
+
+
+class FullSourceWishlistTests(unittest.TestCase):
+    """Full-body discoveries are pending evidence, including after source changes."""
+    def setUp(self):
+        WishlistTests.setUp(self)
+        save(self.root / 'config/wishlist-evidence.json', self.source)
+        save(self.root / 'site/data/games/a.json', {'events': [self.events[0]]})
+        self.full_game = self.catalog['games'][1]
+        self.full_event = dict(self.events[1], id='steam-b-123', title='Development news',
+            summary='A description without any numeric wishlist phrase.',
+            source_url='https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/123')
+        self.events[1] = self.full_event
+        self.body = 'Ordinary game details. ' * 100 + 'We have passed 5,000 wishlists!'
+
+    def full_mention(self, body=None, source_app_id=20, observed_at='2026-10-21T11:00:00Z'):
+        from news_evidence import extract_mentions
+        item = {'gid': '123', 'appid': source_app_id, 'title': self.full_event['title'],
+                'contents': body if body is not None else self.body,
+                'date': int(datetime.fromisoformat(self.full_event['published_at'].replace('Z', '+00:00')).timestamp()),
+                'feedname': 'steam_community_announcements', 'url': self.full_event['source_url']}
+        return extract_mentions(self.full_game, source_app_id,
+            {'appnews': {'appid': source_app_id, 'newsitems': [item]}}, observed_at)[0]
+
+    def save_review(self, mention, decision='not_a_claim'):
+        source = copy.deepcopy(self.source)
+        ids = []
+        if decision == 'verified_claim':
+            claim = dict(source['disclosures'][0], id='full-source-claim',
+                game_id='b', app_id=20, event_id=None, quote='We have passed 5,000 wishlists!',
+                source_url=self.full_event['source_url'], published_at=self.full_event['published_at'],
+                value=5000)
+            source['disclosures'].append(claim)
+            ids.append(claim['id'])
+        save(self.root / 'config/wishlist-evidence.json', source)
+        review = {'id': 'review-full-source', 'game_id': 'b', 'app_id': 20,
+                  'event_id': self.full_event['id'], 'candidate_id': 'candidate-' + self.full_event['id'],
+                  'source_url': self.full_event['source_url'],
+                  'published_at': self.full_event['published_at'],
+                  'reviewed_at': '2026-10-21T10:00:00Z', 'reviewer': 'gpt-6.1-sol',
+                  'decision': decision, 'reason': 'Reviewed source context',
+                  'disclosure_ids': ids, 'source_check': {'http_status': 200,
+                      'app_id_matches': True, 'publication_matches': True,
+                      'observed_at': '2026-10-21T09:00:00Z',
+                      'request_url': 'https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=20',
+                      'body_sha256': mention['body_sha256']}}
+        save(self.root / 'config/source-reviews.json',
+             {'schema_version': 1, 'candidate_reviews': [review]})
+        return source
+
+    def full_build(self, mentions):
+        return build_index(self.root, self.catalog, self.now,
+                           events=self.events, numeric_mentions=mentions)
+
+    def test_full_source_new_candidate_outside_summary_without_keyword_match(self):
+        self.full_event.update(title='Patch notes', summary='Controls improved.')
+        mention = self.full_mention()
+        before = copy.deepcopy((self.events, mention))
+        result = self.full_build([mention])
+        self.assertEqual(len(result['candidates']), 1)
+        row = result['candidates'][0]
+        self.assertEqual(row['id'], 'candidate-' + self.full_event['id'])
+        self.assertEqual(row['body_sha256'], mention['body_sha256'])
+        self.assertEqual(row['source_app_id'], 20)
+        self.assertEqual(row['discovery_method'], 'official_steam_news_full_text_numeric_scan')
+        self.assertIn('5,000', row['quote'])
+        self.assertEqual(row['review_status'], 'unreviewed_numeric_mention')
+        self.assertNotIn('value', row)
+        self.assertEqual((self.events, mention), before)
+        self.assertEqual(result['coverage']['mentions'], 2)
+        self.assertEqual(len(result['disclosures']), 1)
+
+    def test_full_and_summary_candidates_merge_without_duplicate_event(self):
+        self.full_event['summary'] = 'We passed 5,000 wishlists!'
+        mention = self.full_mention()
+        result = self.full_build([mention])
+        self.assertEqual(len(result['candidates']), 1)
+        self.assertEqual(result['candidates'][0]['id'], 'candidate-' + self.full_event['id'])
+        self.assertEqual(result['candidates'][0]['numeric_mention_id'], mention['id'])
+
+    def test_same_reviewed_body_is_not_reregistered_for_verified_or_excluded(self):
+        mention = self.full_mention()
+        for decision in ('verified_claim', 'not_a_claim'):
+            with self.subTest(decision=decision):
+                self.save_review(mention, decision)
+                self.assertEqual(self.full_build([mention])['candidates'], [])
+
+    def test_changed_body_requeues_despite_old_verified_or_excluded_review(self):
+        original = self.full_mention()
+        changed = self.full_mention(self.body + ' We now have 6,000 wishlists!')
+        for decision in ('verified_claim', 'not_a_claim'):
+            with self.subTest(decision=decision):
+                source = self.save_review(original, decision)
+                before = copy.deepcopy((source, self.events, original, changed))
+                unchanged_index = self.full_build([original])
+                result = self.full_build([original, changed])
+                row = result['candidates'][0]
+                self.assertEqual(row['review_status'], 'source_changed')
+                self.assertEqual(row['review_reason'], '원문 변경으로 재확인 필요')
+                self.assertEqual(row['previous_review_decision'], decision)
+                self.assertEqual(row['body_sha256'], changed['body_sha256'])
+                self.assertEqual(result['disclosures'], unchanged_index['disclosures'])
+                self.assertEqual((source, self.events, original, changed), before)
+
+    def test_older_cache_does_not_reopen_a_newer_source_review(self):
+        original = self.full_mention()
+        self.save_review(original)
+        older = self.full_mention(self.body + ' Previous version.', observed_at='2026-10-21T08:00:00Z')
+        self.assertEqual(self.full_build([older])['candidates'], [])
+
+    def test_latest_observation_wins_and_candidate_id_is_stable(self):
+        older = self.full_mention(observed_at='2026-10-21T09:00:00Z')
+        latest = self.full_mention(self.body + ' 6,000 wishlists!', observed_at='2026-10-21T11:00:00Z')
+        a = self.full_build([older, latest])['candidates'][0]
+        b = self.full_build([latest, older])['candidates'][0]
+        self.assertEqual(a, b)
+        self.assertEqual(a['body_sha256'], latest['body_sha256'])
+        self.assertEqual(a['id'], self.full_build([older])['candidates'][0]['id'])
+
+    def test_historic_linked_disclosure_without_candidate_review_stays_reviewed(self):
+        self.full_event['summary'] = 'We have passed 5,000 wishlists!'
+        source = copy.deepcopy(self.source)
+        source['disclosures'].append(dict(source['disclosures'][0], id='legacy-linked',
+            game_id='b', app_id=20, event_id=self.full_event['id'], value=5000,
+            quote=self.full_event['summary'], source_url=self.full_event['source_url'],
+            published_at=self.full_event['published_at']))
+        save(self.root / 'config/wishlist-evidence.json', source)
+        self.assertEqual(self.full_build([self.full_mention()])['candidates'], [])
+
+    def test_amended_linked_original_stays_reviewed_in_summary_and_full_scan(self):
+        self.full_event['summary'] = 'We have passed 5,000 wishlists!'
+        source = copy.deepcopy(self.source)
+        original = dict(source['disclosures'][0], id='legacy-linked-original',
+            game_id='b', app_id=20, event_id=self.full_event['id'], value=5000,
+            quote=self.full_event['summary'], source_url=self.full_event['source_url'],
+            published_at=self.full_event['published_at'])
+        corrected = dict(original, id='legacy-corrected', event_id=None, operator='gt')
+        source['disclosures'].extend([original, corrected])
+        save(self.root / 'config/wishlist-evidence.json', source)
+        mention = self.full_mention()
+        amendment = {'id': 'legacy-amendment', 'previous_disclosure_id': original['id'],
+            'replacement_disclosure_id': corrected['id'], 'reason': 'Full source confirms passed.',
+            'reviewer': 'gpt-6.1-sol', 'reviewed_at': '2026-10-21T11:30:00Z',
+            'source_check': {'http_status': 200, 'app_id_matches': True,
+                'publication_matches': True, 'observed_at': mention['observed_at'],
+                'request_url': 'https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=20',
+                'body_sha256': mention['body_sha256']}}
+        save(self.root / 'config/source-reviews.json', {'schema_version': 1,
+            'candidate_reviews': [], 'disclosure_amendments': [amendment]})
+        before = copy.deepcopy((source, self.events, mention))
+        for discoveries in ([], [mention]):
+            with self.subTest(full_scan=bool(discoveries)):
+                result = self.full_build(discoveries)
+                self.assertEqual(result['candidates'], [])
+                self.assertEqual(result['coverage']['candidates'], 0)
+                self.assertEqual(result['active_disclosure_ids'], ['disclosure-a', corrected['id']])
+                self.assertEqual(result['coverage']['disclosures'], 2)
+                self.assertEqual(len(result['disclosures']), 3)
+                self.assertIn(original['id'], {row['id'] for row in result['disclosures']})
+                comparison = next(row for row in result['comparisons'] if row['game_id'] == 'b')
+                self.assertEqual(comparison['latest_disclosure_id'], corrected['id'])
+        self.assertEqual((source, self.events, mention), before)
+
+    def test_full_mentions_validate_base_demo_and_other_game_mapping(self):
+        demo = self.full_mention(source_app_id=21)
+        self.assertEqual(self.full_build([demo])['candidates'][0]['source_app_id'], 21)
+        for key, value in [('game_id', 'a'), ('app_id', 21), ('source_app_id', 10),
+                           ('source_kind', 'base'), ('event_id', 'news-a'),
+                           ('published_at', '2026-10-20T10:00:00Z'),
+                           ('observed_at', '2026-10-22T11:00:00Z')]:
+            with self.subTest(key=key):
+                with self.assertRaises(ValueError):
+                    self.full_build([dict(demo, **{key: value})])
+
+    def test_history_is_read_when_numeric_mentions_are_not_passed(self):
+        mention = self.full_mention()
+        save(self.root / 'site/data/games/b.json',
+             {'events': [self.full_event], 'numeric_mentions': [mention]})
+        with_events = build_index(self.root, self.catalog, self.now, events=self.events)
+        from_history = build_index(self.root, self.catalog, self.now)
+        self.assertEqual(with_events['candidates'][0]['body_sha256'], mention['body_sha256'])
+        self.assertEqual(from_history['candidates'][0]['body_sha256'], mention['body_sha256'])
+        self.assertEqual(self.full_build([])['candidates'], [])
 
 
 if __name__ == '__main__':

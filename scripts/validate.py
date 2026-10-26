@@ -11,6 +11,8 @@ from fleet import (adjacent, range_summary, target_minutes, observation_history,
                    news_history, collection_metadata, ccu_enabled)
 from wishlist import build_index as build_wishlist_index
 import store_metrics
+import context_metrics
+import news_evidence
 from game_context import public_config
 
 
@@ -157,7 +159,8 @@ def validate(root: Path = ROOT):
     expected_coverage = dict.fromkeys(summary['coverage'], 0)
     expected_coverage['catalog_total'] = len(games)
     full_interval = target_minutes(config, catalog, '__all__')
-    all_events, counts, original_signatures = {}, Counter(), {}
+    all_events, counts, original_signatures, context_rows, numeric_mentions = {}, Counter(), {}, [], []
+    fulltext_checked = 0
     for game in games:
         gid = game['id']
         require(bool(re.fullmatch(r'[a-z0-9-]+', gid)), 'unsafe_game_id')
@@ -168,7 +171,29 @@ def validate(root: Path = ROOT):
         url(game['participation']['source_url'])
         require(bool(game['participation']['evidence_excerpt']), 'participation_evidence_missing')
         hist = load_json(root / 'site/data/games' / f'{gid}.json')
+        context_rows.append(hist.get('context_snapshots', []))
         validate_history(hist, {gid}, start, stop)
+        mention_ids = set()
+        for mention in hist.get('numeric_mentions', []):
+            news_evidence.validate_mention(mention, game, hist['events'])
+            require(mention['id'] not in mention_ids, 'duplicate_numeric_source_mention')
+            mention_ids.add(mention['id'])
+            require(start <= parse(mention['observed_at']) < stop and
+                    parse(mention['observed_at']) <= window_end, 'numeric_mention_outside_window')
+        numeric_mentions.extend(hist.get('numeric_mentions', []))
+        for app in filter(None, (game['app_id'], game.get('demo_app_id'))):
+            checked = hist.get('news_sources', {}).get(str(app), {}).get('last_fulltext_checked_at')
+            if checked:
+                require(start <= parse(checked) < stop and parse(checked) <= window_end,
+                        'fulltext_check_outside_window')
+                fulltext_checked += 1
+        context_times = set()
+        for snapshot in hist.get('context_snapshots', []):
+            context_metrics.validate_snapshot(snapshot, game)
+            at = parse(snapshot['observed_at'])
+            require(start <= at < stop and at <= window_end, 'context_outside_observation_window')
+            require(snapshot['observed_at'] not in context_times, 'duplicate_context_snapshot')
+            context_times.add(snapshot['observed_at'])
         for sample in hist['samples']:
             require(parse(sample['observed_at']) <= window_end, 'sample_after_summary_window')
             if sample['metric'] in store_metrics.METRICS:
@@ -215,6 +240,12 @@ def validate(root: Path = ROOT):
         if gid in {g['id'] for g in config['games']}:
             original_signatures[gid] = {field: set(map(signature, hist[field])) for field in ('samples', 'events', 'analyses')}
     require_same_json(summary['coverage'], expected_coverage, 'summary_coverage_mismatch')
+    require_same_json(summary.get('context_coverage'), context_metrics.coverage(context_rows),
+                      'summary_context_coverage_mismatch')
+    require_same_json(summary.get('news_fulltext_coverage'), {
+        'checked_sources': fulltext_checked,
+        'total_sources': summary['collection']['news_source_count'], 'latest_items_per_source': 20},
+        'summary_fulltext_coverage_mismatch')
     require_same_json(summary['collection'].get('target_cycle_minutes'),
                       full_interval, 'summary_target_cycle_mismatch')
     for field, value in collection_metadata(config, catalog).items():
@@ -239,7 +270,8 @@ def validate(root: Path = ROOT):
     wishlist_path = root / 'site/data/wishlists.json'
     require(wishlist_path.is_file(), 'wishlist_index_missing')
     require_same_json(load_json(wishlist_path),
-                      build_wishlist_index(root, catalog, generated, events=list(all_events.values())),
+                      build_wishlist_index(root, catalog, generated, events=list(all_events.values()),
+                                           numeric_mentions=numeric_mentions),
                       'wishlist_index_mismatch')
     print(f"Validated {len(games)} catalog games, {counts['samples']} observations, {counts['events']} events; original evidence preserved.")
 

@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "reviewer": "gpt-6.1-sol",
+  "snapshot_at": "2026-10-26T06:40:46Z",
+  "catalog_games": 7164,
+  "stored_observations": 121624,
+  "stored_events": 20297,
+  "existing_disclosures_reviewed": 138,
+  "original_records_preserved": true,
+  "append_only_corrections": 2,
+  "original_candidate_scope": {
+    "reviewed": 335,
+    "verified_claim": 313,
+    "not_a_claim": 9,
+    "needs_review": 13
+  },
+  "wishlist_current_coverage": {
+    "disclosure_games": 308,
+    "disclosures": 451,
+    "mention_games": 1264,
+    "mentions": 1906,
+    "candidate_games": 17,
+    "candidates": 17,
+    "reviewed_candidates": 335,
+    "excluded_candidates": 9,
+    "unresolved_candidates": 13,
+    "current_stock_games": 0,
+    "followers_ok": 0,
+    "followers_conflict": 2
+  },
+  "wishlist_archived_records": 453,
+  "context_coverage": {
+    "attempted_games": 7164,
+    "ok_games": 7161,
+    "developers_games": 7160,
+    "publishers_games": 7160,
+    "release_games": 7161,
+    "trailer_games": 6954,
+    "trailers": 9237,
+    "last_observed_at": "2026-10-26T06:15:43Z"
+  },
+  "full_text_scan_coverage": {
+    "checked_sources": 50,
+    "total_sources": 14327,
+    "latest_items_per_source": 20
+  },
+  "source_request_budget": {
+    "recorded_requests": 509,
+    "unmetered_redirect_upper_bound": 280,
+    "charged_upper_bound": 789,
+    "reserved_allowance": 800,
+    "exact_http_count_known": false
+  },
+  "local_source_archive": {
+    "filename": "nextfest-sol-20261026-final-audit.tar.gz",
+    "bytes": 2781988,
+    "sha256": "b99b1416302d00a45f148d47b86159926349be54914002efc37d21cf45aae660"
+  },
+  "limits": [
+    "타사 게임의 정확한 현재 위시리스트 잔액과 검증 팔로워 미확보",
+    "335건은 기존 발췌문에서 발견된 후보 범위이며 전체 Steam 공지의 수치 전수 검토가 아님",
+    "전체본문 검색은 출처별 최신 20건에 한하며 기계 탐지 결과는 검토 전 후보임",
+    "새 전체본문 후보 4건은 별도 미검토 상태",
+    "초기 관측 중단 기간의 실제 데이터는 복원하거나 만들어 넣지 않음",
+    "공개 발표는 발표 당시 발행자 진술이며 현재 잔액·원인으로 간주하지 않음",
+    "게임별 동접 시각은 순환 수집과 실행 지연에 따라 다름",
+    "상점 영상의 게시일·조회수는 제공되지 않으며 관측시각과 구분"
+  ]
+}

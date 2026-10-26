@@ -10,7 +10,8 @@ from pathlib import Path
 
 from collect import ROOT
 
-EVIDENCE_FIELDS = ("samples", "events", "analyses", "disclosures", "follower_checks", "methods")
+EVIDENCE_FIELDS = ("samples", "events", "analyses", "disclosures", "follower_checks", "methods",
+                   "candidate_reviews", "disclosure_amendments", "context_snapshots", "numeric_mentions")
 
 
 def signature(record):
@@ -40,7 +41,7 @@ def check_evidence(root: Path = ROOT, baseline_ref: str = "HEAD"):
     paths = git("ls-tree", "-r", "-z", "--name-only", revision, "--",
                 "site/data/games/", "site/data/observations.json",
                 "config/wishlist-evidence.json", "site/data/wishlists.json",
-                "config/game-context.json").decode().split("\0")
+                "config/game-context.json", "config/source-reviews.json").decode().split("\0")
     paths = [p for p in paths if p.endswith(".json")]
     if not paths:
         raise ValueError("baseline_has_no_evidence")

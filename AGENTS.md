@@ -20,7 +20,10 @@
 - The user's 2026-10-21 request permits clearly separated, sourced reference scenarios and private browser-only error checks. Historical follower ratios are not calibrated predictions or confidence intervals for this festival.
 - Preserve reviewed wishlist disclosures, follower checks and method versions in config/wishlist-evidence.json. A milestone is a dated publisher claim, not a current wishlist balance or a measured addition.
 - Automated collection uses public Steam endpoints, with a fixed event end guard.
-- Astra reviews design, content and behavior. GPT-6.1-SOL collects and verifies source evidence.
+- Astra may review design and behavior. The user explicitly requires GPT-6.1-SOL for all data collection, source interpretation and evidence verification. Do not substitute Astra for the data review. Preserve the decision, source identity and observation time of each review.
+- Append new public store context to per-game `context_snapshots`; never replace the original archived context. Store trailer observation dates are not publication dates, and store tags/categories are not genres. Explicitly record rejected wishlist targets and unresolved wording as source-review decisions.
+- Corrections append replacement disclosures and `disclosure_amendments`; keep previous records intact. Only `active_disclosure_ids` contribute to displayed claims and comparisons. Use all archived disclosure event links when deciding whether a source was already reviewed.
+- Full official news bodies are searched for numeric candidates before truncating display summaries. Save bounded, unreviewed `numeric_mentions` with source identity and content hashes; do not publish entire articles or promote machine matches to verified counts. A later changed body reopens a candidate without rewriting an earlier dated claim. Report scanned source coverage separately from the initial candidate review.
 - Only reviewed analyses may be stored in `analyses`. New samples do not renew their review dates.
 - Site files are in `site/`; configuration source is `config/manifest.json`.
 - The complete registration catalog is `site/data/catalog.json`; `config.games` only retains the two original priority games and their evidence.

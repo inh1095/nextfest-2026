@@ -21,6 +21,8 @@ from collect import (ROOT, UTC, USER_AGENT, ccu_url, error_code,
                      load_json, news_events, parse, parse_ccu, stamp)
 from wishlist import build_index as build_wishlist_index
 import store_metrics
+import context_metrics
+import news_evidence
 from game_context import public_config
 
 ACTIVE_CLIENT = None
@@ -191,7 +193,8 @@ def history_path(root, game_id):
 def blank_history(now):
     return {"schema_version": 1, "generated_at": stamp(now), "collection_status": "active",
             "archived_at": None, "samples": [], "events": [], "analyses": [],
-            "news_status": {}, "news_last_attempt_at": {}, "notices": []}
+            "news_status": {}, "news_last_attempt_at": {}, "notices": [],
+            "context_snapshots": [], "numeric_mentions": []}
 
 
 def valid(sample):
@@ -297,7 +300,8 @@ def build_indexes(root, config=None, catalog=None, now=None):
     now = parse(stamp(now or datetime.now(UTC)))
     start, stop = parse(config["event"]["starts_at"]), parse(config["collection"]["stops_at"])
     end = min(now, stop)
-    collected, events, wishlist_events = [], {}, []
+    collected, events, wishlist_events, context_rows, numeric_mentions = [], {}, [], [], []
+    fulltext_checked = 0
     coverage = dict.fromkeys(["catalog_total", "demo_resolved", "ccu_attempted", "ccu_ok",
                               "ccu_pending", "ccu_error", "ccu_unavailable", "comparison_ready",
                               "news_checked", "news_pending", "growth_candidate_games",
@@ -310,6 +314,10 @@ def build_indexes(root, config=None, catalog=None, now=None):
         gid = game["id"]
         path = history_path(root, gid)
         history = load_json(path) if path.exists() else blank_history(now)
+        context_rows.append(history.get('context_snapshots', []))
+        numeric_mentions.extend(history.get('numeric_mentions', []))
+        fulltext_checked += sum(bool(history.get('news_sources', {}).get(str(app), {}).get(
+            'last_fulltext_checked_at')) for app in filter(None, (game['app_id'], game.get('demo_app_id'))))
         rows = sorted((s for s in history["samples"] if s["metric"] == "demo_ccu"),
                       key=lambda s: s["observed_at"])
         good = [s for s in rows if valid(s)]
@@ -361,13 +369,17 @@ def build_indexes(root, config=None, catalog=None, now=None):
                "collection_status": "archived" if now >= stop else "pending" if now < start else "active",
                "archived_at": state.get("archived_at") if now >= stop else None,
                "last_attempt_at": (state.get("last_run") or {}).get("started_at"),
-               "coverage": coverage, "collection": collection,
+               "coverage": coverage, "context_coverage": context_metrics.coverage(context_rows),
+               "news_fulltext_coverage": {"checked_sources": fulltext_checked,
+                    "total_sources": collection['news_source_count'], "latest_items_per_source": 20},
+               "collection": collection,
                "last_run": state.get("last_run"), "games": collected}
     save(root / "site/data/summary.json", summary)
     save(root / "site/data/events-index.json", {"schema_version": 2, "generated_at": stamp(now),
          "events": sorted(events.values(), key=lambda e: e.get("published_at") or "", reverse=True)})
     save(root / "site/data/config.json", public_config(root, config, catalog))
-    save(root / "site/data/wishlists.json", build_wishlist_index(root, catalog, now, events=wishlist_events))
+    save(root / "site/data/wishlists.json", build_wishlist_index(
+        root, catalog, now, events=wishlist_events, numeric_mentions=numeric_mentions))
     return summary
 
 
@@ -462,6 +474,9 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
     metadata_processed = 0
     metadata_cursor = state.get('metadata_cursor', 0)
     metadata_interval = store_metrics.target_interval(config, catalog)
+    context_enabled = settings.get('context_enabled', False)
+    if type(context_enabled) is not bool:
+        raise ValueError('context_enabled_must_be_boolean')
     pending = []
 
     def metadata_batch(batch):
@@ -469,7 +484,7 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
             return True
         error, items = None, {}
         try:
-            items = store_metrics.response_items(client.get(store_metrics.request_url(batch),
+            items = store_metrics.response_items(client.get(store_metrics.request_url(batch, include_context=context_enabled),
                                                             channel_metadata), batch)
         except Paused:
             return False
@@ -482,6 +497,9 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
             hist = get_history(game['id'])
             hist['samples'].extend(store_metrics.observations(
                 game, items.get(game['app_id']), stamp(finished), error=error, batch_size=len(batch)))
+            if context_enabled:
+                hist.setdefault('context_snapshots', []).append(context_metrics.parse_snapshot(
+                    game, items.get(game['app_id']), stamp(finished), error=error, batch_size=len(batch)))
             save_history(game['id'])
         return True
 
@@ -490,7 +508,7 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
             hist = get_history(game['id'])
             previous = [s for s in hist['samples'] if s['metric'] in store_metrics.METRICS]
             last = max((parse(s['observed_at']) for s in previous), default=None)
-            due = (last is None or (missing_only and store_metrics.retryable_failure(previous)
+            due = ((context_enabled and not hist.get('context_snapshots')) or last is None or (missing_only and store_metrics.retryable_failure(previous)
                                     and last < parse(stamp(datetime.now(UTC)))) or
                    (not missing_only and
                     (datetime.now(UTC) - last).total_seconds() >= metadata_interval * 60))
@@ -542,6 +560,9 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
 
     news_processed = 0
     source_statuses = {}
+    full_news = settings.get('news_fulltext_enabled', False)
+    if type(full_news) is not bool:
+        raise ValueError('news_fulltext_enabled_must_be_boolean')
     for game, app_id in rotated(news_sources, state["news_cursor"]):
         if not news_limit or channel_news["used"] >= news_limit or client.reason:
             break
@@ -550,18 +571,29 @@ def collect_fleet(root, *, full=False, mode=None, run_id=None, spacing=None,
         prior_source = hist.get("news_sources", {}).get(str(app_id), {})
         verified = stamp(datetime.now(UTC))
         url = ("https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/"
-               f"?appid={app_id}&count=20&maxlength=1200&feeds=steam_community_announcements")
+               f"?appid={app_id}&count=20&maxlength={0 if full_news else 1200}&feeds=steam_community_announcements")
         try:
-            found = news_events(client.get(url, channel_news), gid, verified)
+            payload = client.get(url, channel_news)
+            verified = stamp(datetime.now(UTC))
+            found = news_events(payload, gid, verified)
+            discovered = news_evidence.extract_mentions(game, app_id, payload, verified) if full_news else []
             existing = {e["id"] for e in hist["events"]}
             hist["events"].extend(e for e in found if e["id"] not in existing)
+            saved_mentions = {r['id'] for r in hist.get('numeric_mentions', [])}
+            for row in discovered:
+                news_evidence.validate_mention(row, game, hist['events'])
+                if row['id'] not in saved_mentions:
+                    hist.setdefault('numeric_mentions', []).append(row)
+                    saved_mentions.add(row['id'])
             status = {"last_attempt_at": verified, "last_success_at": verified,
-                      "status": "ok", "error_codes": []}
+                      "status": "ok", "error_codes": [],
+                      "last_fulltext_checked_at": verified if full_news else prior_source.get('last_fulltext_checked_at')}
         except Paused:
             break
         except Exception as error:
             status = {"last_attempt_at": verified,
                       "last_success_at": prior_source.get("last_success_at"),
+                      "last_fulltext_checked_at": prior_source.get('last_fulltext_checked_at'),
                       "status": "error", "error_codes": [error_code(error)]}
         if datetime.now(UTC) >= stop:
             break

@@ -4,6 +4,7 @@ import sys
 import tempfile
 import unittest
 import urllib.error
+from urllib.parse import parse_qs, urlsplit
 from datetime import datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
@@ -66,6 +67,31 @@ class FleetTests(unittest.TestCase):
         FakeClient.calls = []
         FakeClient.failed_app = None
 
+    def test_full_news_scan_retains_source_summary_and_appends_only_new_candidate_versions(self):
+        class FullNewsClient(FakeClient):
+            def get(client, url, channel):
+                result = super().get(url, channel)
+                if 'GetNewsForApp' not in url:
+                    return result
+                query = parse_qs(urlsplit(url).query)
+                self.assertEqual(query['maxlength'], ['0'])
+                app = int(query['appid'][0])
+                return {'appnews': {'appid': app, 'newsitems': [{
+                    'appid': app, 'gid': str(app * 100), 'date': int(datetime.now(UTC).timestamp()) - 60,
+                    'title': 'Development news', 'feedname': 'steam_community_announcements',
+                    'url': f'https://steamstore-a.akamaihd.net/news/externalpost/steam_community_announcements/{app * 100}',
+                    'contents': 'Development details. ' * 50 + 'We reached 10000 wishlists.'}]}}
+        self.config['collection']['news_fulltext_enabled'] = True
+        save(self.root / 'config/manifest.json', self.config)
+        collect_fleet(self.root, mode='news', client_factory=FullNewsClient, run_id='full-news')
+        before = load_json(history_path(self.root, 'a'))
+        self.assertEqual(len(before['numeric_mentions']), 2)
+        self.assertNotIn('10000', before['events'][0]['summary'])
+        self.assertIn('10000', before['numeric_mentions'][0]['quote'])
+        collect_fleet(self.root, mode='news', client_factory=FullNewsClient, run_id='full-news-again')
+        after = load_json(history_path(self.root, 'a'))
+        self.assertEqual(before['events'], after['events'])
+        self.assertEqual(before['numeric_mentions'], after['numeric_mentions'])
     def tearDown(self):
         self.temp.cleanup()
 

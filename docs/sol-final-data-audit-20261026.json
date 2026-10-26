@@ -1,0 +1,377 @@
+{
+  "audited_at": "2026-10-26T06:36:54.774184+00:00",
+  "summary_generated_at": "2026-10-26T06:36:38Z",
+  "last_run": {
+    "run_id": "sol-fulltext-validation-20261026",
+    "started_at": "2026-10-26T06:35:31Z",
+    "finished_at": "2026-10-26T06:36:38Z",
+    "ccu_requests": 0,
+    "news_requests": 50,
+    "metadata_requests": 0,
+    "request_count": 50,
+    "reserved_requests": 600,
+    "pause_reason": "runtime_budget",
+    "ccu_games_attempted": 0,
+    "news_sources_attempted": 50
+  },
+  "catalog": 7164,
+  "summary_coverage": {
+    "catalog_total": 7164,
+    "demo_resolved": 7163,
+    "ccu_attempted": 7163,
+    "ccu_ok": 7163,
+    "ccu_pending": 0,
+    "ccu_error": 0,
+    "ccu_unavailable": 1,
+    "comparison_ready": 7163,
+    "news_checked": 7164,
+    "news_pending": 0,
+    "growth_candidate_games": 4915,
+    "reviewed_games": 2
+  },
+  "counts": {
+    "demo_ccu": 56846,
+    "price_final": 21592,
+    "review_count": 21592,
+    "review_positive_percent": 21592,
+    "event:announcement": 13803,
+    "event:update": 6491,
+    "followers": 2,
+    "event:video": 3
+  },
+  "sample_status": {
+    "demo_ccu": {
+      "ok": 56846
+    },
+    "price_final": {
+      "unavailable": 20751,
+      "ok": 741,
+      "error": 100
+    },
+    "review_count": {
+      "ok": 21483,
+      "error": 100,
+      "unavailable": 9
+    },
+    "review_positive_percent": {
+      "unavailable": 21471,
+      "error": 100,
+      "ok": 21
+    },
+    "followers": {
+      "unavailable": 2
+    }
+  },
+  "latest_status": {
+    "demo_ccu": {
+      "ok": 7163
+    },
+    "review_count": {
+      "ok": 7161,
+      "unavailable": 3
+    },
+    "review_positive_percent": {
+      "unavailable": 7157,
+      "ok": 7
+    },
+    "price_final": {
+      "unavailable": 6915,
+      "ok": 249
+    },
+    "followers": {
+      "unavailable": 2
+    }
+  },
+  "latest_sample_time_ranges": {
+    "demo_ccu": {
+      "min": "2026-10-26T01:00:04Z",
+      "max": "2026-10-26T06:34:28Z"
+    },
+    "review_count": {
+      "min": "2026-10-26T06:14:06Z",
+      "max": "2026-10-26T06:15:43Z"
+    },
+    "review_positive_percent": {
+      "min": "2026-10-26T06:14:06Z",
+      "max": "2026-10-26T06:15:43Z"
+    },
+    "price_final": {
+      "min": "2026-10-26T06:14:06Z",
+      "max": "2026-10-26T06:15:43Z"
+    },
+    "followers": {
+      "min": "2026-10-20T06:59:20Z",
+      "max": "2026-10-20T06:59:21Z"
+    }
+  },
+  "games_with_data": {
+    "all_valid_games": 7163,
+    "6_valid_games": 7163,
+    "24_valid_games": 7163,
+    "ccu_since_restart_games": 7163,
+    "events_games": 4208,
+    "news_games": 4208,
+    "max_increase_games": 4915,
+    "video_games": 2
+  },
+  "ccu_gaps_minutes": {
+    "all_mixed_bootstrap_and_stopped_period": {
+      "n": 49683,
+      "median": 223.71666666666667,
+      "p90": 7046.55,
+      "min": 9.1,
+      "max": 7113.783333333334
+    },
+    "before_restart": {
+      "n": 41983,
+      "median": 223.35,
+      "p90": 239.7,
+      "min": 9.1,
+      "max": 251.15
+    },
+    "pairs_both_after_restart": {
+      "n": 537,
+      "median": 330.6666666666667,
+      "p90": 333.6666666666667,
+      "min": 20.433333333333334,
+      "max": 334.45
+    },
+    "per_game_latest_gap_mixed": {
+      "n": 7163,
+      "median": 7056.8,
+      "p90": 7081.3,
+      "min": 35.25,
+      "max": 7113.783333333334
+    },
+    "latest_sample_age": {
+      "n": 7163,
+      "median": 159.68333333333334,
+      "p90": 271.55,
+      "min": 2.1666666666666665,
+      "max": 336.56666666666666
+    }
+  },
+  "metadata_gap_minutes": {
+    "review_count": {
+      "n": 14428,
+      "median": 73.01666666666667,
+      "p90": 246.91666666666666,
+      "min": 15.516666666666667,
+      "max": 254.05
+    },
+    "review_positive_percent": {
+      "n": 14428,
+      "median": 73.01666666666667,
+      "p90": 246.91666666666666,
+      "min": 15.516666666666667,
+      "max": 254.05
+    },
+    "price_final": {
+      "n": 14428,
+      "median": 73.01666666666667,
+      "p90": 246.91666666666666,
+      "min": 15.516666666666667,
+      "max": 254.05
+    }
+  },
+  "seed_games": {
+    "hela": {
+      "valid_samples": 77,
+      "new_samples": 14,
+      "latest": {
+        "game_id": "hela",
+        "metric": "demo_ccu",
+        "observed_at": "2026-10-26T06:22:17Z",
+        "value": 70,
+        "status": "ok",
+        "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4553860",
+        "error_code": null
+      },
+      "all_gap_minutes": {
+        "n": 76,
+        "median": 22.2,
+        "p90": 23.3,
+        "min": 9.1,
+        "max": 6792.233333333334
+      },
+      "restart_gap_minutes": {
+        "n": 13,
+        "median": 22.616666666666667,
+        "p90": 33.006666666666675,
+        "min": 20.433333333333334,
+        "max": 45.38333333333333
+      },
+      "last_two_gap_minutes": 35.38333333333333,
+      "all_range": {
+        "from": "2026-10-19T17:00:00Z",
+        "to": "2026-10-26T06:36:38Z",
+        "first": {
+          "observed_at": "2026-10-20T06:59:20Z",
+          "value": 159
+        },
+        "last": {
+          "observed_at": "2026-10-26T06:22:17Z",
+          "value": 70
+        },
+        "peak": 380,
+        "valid_count": 77,
+        "latest_adjacent": {
+          "from": "2026-10-26T05:46:54Z",
+          "to": "2026-10-26T06:22:17Z",
+          "start_value": 76,
+          "end_value": 70,
+          "delta": -6,
+          "percent": -7.894736842105263,
+          "elapsed_minutes": 35.38333333333333
+        },
+        "max_increase": {
+          "from": "2026-10-20T18:41:45Z",
+          "to": "2026-10-20T19:03:56Z",
+          "start_value": 271,
+          "end_value": 309,
+          "delta": 38,
+          "percent": 14.022140221402212,
+          "elapsed_minutes": 22.183333333333334
+        },
+        "positive_intervals": 31
+      }
+    },
+    "lethal-wedding": {
+      "valid_samples": 77,
+      "new_samples": 14,
+      "latest": {
+        "game_id": "lethal-wedding",
+        "metric": "demo_ccu",
+        "observed_at": "2026-10-26T06:22:19Z",
+        "value": 0,
+        "status": "ok",
+        "source_url": "https://api.steampowered.com/ISteamUserStats/GetNumberOfCurrentPlayers/v1/?appid=4768410",
+        "error_code": null
+      },
+      "all_gap_minutes": {
+        "n": 76,
+        "median": 22.216666666666665,
+        "p90": 23.291666666666664,
+        "min": 9.133333333333333,
+        "max": 6792.116666666667
+      },
+      "restart_gap_minutes": {
+        "n": 13,
+        "median": 22.633333333333333,
+        "p90": 32.900000000000006,
+        "min": 20.466666666666665,
+        "max": 45.5
+      },
+      "last_two_gap_minutes": 35.25,
+      "all_range": {
+        "from": "2026-10-19T17:00:00Z",
+        "to": "2026-10-26T06:36:38Z",
+        "first": {
+          "observed_at": "2026-10-20T06:59:21Z",
+          "value": 0
+        },
+        "last": {
+          "observed_at": "2026-10-26T06:22:19Z",
+          "value": 0
+        },
+        "peak": 1,
+        "valid_count": 77,
+        "latest_adjacent": {
+          "from": "2026-10-26T05:47:04Z",
+          "to": "2026-10-26T06:22:19Z",
+          "start_value": 0,
+          "end_value": 0,
+          "delta": 0,
+          "percent": null,
+          "elapsed_minutes": 35.25
+        },
+        "max_increase": {
+          "from": "2026-10-21T05:52:53Z",
+          "to": "2026-10-21T06:15:07Z",
+          "start_value": 0,
+          "end_value": 1,
+          "delta": 1,
+          "percent": null,
+          "elapsed_minutes": 22.233333333333334
+        },
+        "positive_intervals": 6
+      }
+    }
+  },
+  "metadata_historical_error_codes": {
+    "price_final:price_not_announced": 20742,
+    "review_positive_percent:no_reviews": 21462,
+    "price_final:invalid_response": 100,
+    "review_count:invalid_response": 100,
+    "review_positive_percent:invalid_response": 100,
+    "price_final:store_item_unavailable": 9,
+    "review_count:store_item_unavailable": 9,
+    "review_positive_percent:store_item_unavailable": 9
+  },
+  "latest_news_source_errors": [],
+  "wishlist": {
+    "records": 453,
+    "games": 308,
+    "unique_game_source": 450,
+    "stock_definitions": {
+      "unspecified": 445,
+      "period_adds": 8
+    },
+    "kind": {
+      "milestone_lower_bound": 357,
+      "reported_count": 88,
+      "period_additions": 8
+    },
+    "operator": {
+      "gte": 183,
+      "gt": 183,
+      "approx": 7,
+      "eq": 80
+    },
+    "platform_scope": {
+      "unspecified": 347,
+      "steam": 106
+    },
+    "as_of_known": 1,
+    "verified_at_min": "2026-10-21T05:09:01Z",
+    "verified_at_max": "2026-10-26T06:24:01Z"
+  },
+  "review_records": [
+    {
+      "game_id": "hela",
+      "from": "2026-10-20T06:59:20Z",
+      "to": "2026-10-20T06:59:20Z",
+      "assessment": "insufficient",
+      "reviewed_at": "2026-10-20T07:07:13Z",
+      "hypothesis": null
+    },
+    {
+      "game_id": "lethal-wedding",
+      "from": "2026-10-20T06:59:21Z",
+      "to": "2026-10-20T06:59:21Z",
+      "assessment": "insufficient",
+      "reviewed_at": "2026-10-20T07:07:13Z",
+      "hypothesis": null
+    }
+  ],
+  "game_context_coverage": {
+    "catalog_games": 7164,
+    "mapped_games": 7164,
+    "developers_games": 7163,
+    "publishers_games": 7163,
+    "genres_games": 2,
+    "release_date_games": 2,
+    "video_games": 2,
+    "videos": 3
+  },
+  "game_context_source_snapshot_at": "2026-10-20T09:05:41.421830+00:00",
+  "publication_after_verification": [],
+  "duplicate_ccu_timestamp_games": [],
+  "max_increase_tie_games": 997,
+  "initial_records_preservation": {
+    "baseline_count": 69416,
+    "missing_or_modified": 0
+  },
+  "errors_count": 0,
+  "errors": []
+}

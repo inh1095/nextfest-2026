@@ -1,0 +1,91 @@
+{
+  "head": "77a925b876d1a5f5b73d6af15164f771b39f2fc6",
+  "summary_at": "2026-10-26T06:36:38Z",
+  "last_run": {
+    "run_id": "sol-fulltext-validation-20261026",
+    "started_at": "2026-10-26T06:35:31Z",
+    "finished_at": "2026-10-26T06:36:38Z",
+    "ccu_requests": 0,
+    "news_requests": 50,
+    "metadata_requests": 0,
+    "request_count": 50,
+    "reserved_requests": 600,
+    "pause_reason": "runtime_budget",
+    "ccu_games_attempted": 0,
+    "news_sources_attempted": 50
+  },
+  "ccu_latest_by_day": {
+    "2026-10-26": 7163
+  },
+  "ccu_latest_min": "2026-10-26T01:00:04Z",
+  "ccu_latest_max": "2026-10-26T06:34:28Z",
+  "ccu_restart_coverage": {
+    "games_with_fresh_sample": 7163,
+    "games_with_two_fresh_samples": 513
+  },
+  "ccu_added_in_validation_batch": 550,
+  "ccu_batch_statuses": {
+    "ok": 550
+  },
+  "context_coverage": {
+    "attempted_games": 7164,
+    "ok_games": 7161,
+    "developers_games": 7160,
+    "publishers_games": 7160,
+    "release_games": 7161,
+    "trailer_games": 6954,
+    "trailers": 9237,
+    "last_observed_at": "2026-10-26T06:15:43Z"
+  },
+  "context_summary_equal": true,
+  "fulltext_checked_sources": 50,
+  "fulltext_source_statuses": {
+    "ok": 50
+  },
+  "numeric_mentions": 4,
+  "numeric_mention_statuses": {
+    "unreviewed_numeric_mention": 4
+  },
+  "numeric_mention_errors": [],
+  "wishlist_public_index": {
+    "generated_at": "2026-10-26T06:36:38Z",
+    "disclosures": 453,
+    "candidate_reviews": 335,
+    "coverage": {
+      "disclosure_games": 308,
+      "disclosures": 451,
+      "mention_games": 1264,
+      "mentions": 1906,
+      "candidate_games": 19,
+      "candidates": 19,
+      "reviewed_candidates": 335,
+      "excluded_candidates": 9,
+      "unresolved_candidates": 13,
+      "current_stock_games": 0,
+      "followers_ok": 0,
+      "followers_conflict": 2
+    }
+  },
+  "news_fulltext_summary": {
+    "checked_sources": 50,
+    "total_sources": 14327,
+    "latest_items_per_source": 20
+  },
+  "notes": [
+    "Full-text scan is a bounded machine candidate detector, not a semantic or numerical claim verification.",
+    "50 requested sources are a validation slice, not complete source coverage.",
+    "7163 demo CCU mappings; one catalog game has no resolved demo AppID.",
+    "All original unobserved CCU gap is retained."
+  ],
+  "ccu_freshness": {
+    "games": 7163,
+    "age_minutes": {
+      "min": 2.1666666666666665,
+      "median": 159.68333333333334,
+      "p90": 271.55,
+      "max": 336.56666666666666
+    },
+    "older_than_target_interval": 585,
+    "definition": "Target interval is a configuration target, not a precision guarantee. All 7163 were observed after restart, but only 513 have 2+ restart samples."
+  }
+}

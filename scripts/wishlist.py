@@ -223,6 +223,68 @@ def candidates_from_events(events, mentions, disclosures):
     return candidates
 
 
+def merge_numeric_mentions(rows, catalog, now, events, mentions, candidates, disclosures, reviews):
+    """Merge small full-source discoveries; no machine match becomes a claim.
+
+    Body hashes use raw official contents, as source_reviews does. A title/body
+    content hash versions collection records, but a title-only change cannot be
+    inferred from an older review that recorded only its body hash.
+    """
+    from news_evidence import validate_mention
+
+    require(isinstance(rows, list), 'invalid_numeric_mentions')
+    games = {g['id']: g for g in catalog['games']}
+    event_map = {e['id']: e for e in events}
+    latest = {}
+    for raw in rows:
+        require(isinstance(raw, dict) and raw.get('game_id') in games, 'numeric_mention_unknown_game')
+        row = validate_mention(raw, games[raw['game_id']], event_map)
+        timestamp(row['observed_at'], now)
+        previous = latest.get(row['event_id'])
+        if previous is None or (parse(row['observed_at']), row['id']) > (
+                parse(previous['observed_at']), previous['id']):
+            latest[row['event_id']] = row
+    by_mention = {m['event_id']: m for m in mentions}
+    by_candidate = {c['event_id']: c for c in candidates}
+    linked_disclosures = {d['event_id'] for d in disclosures if d['event_id']}
+    for event_id, row in latest.items():
+        event = event_map[event_id]
+        mention = {'event_id': event_id, 'game_id': row['game_id'],
+                   'title': plain_text(event.get('title', ''), 250),
+                   **{key: row[key] for key in ('app_id', 'source_app_id', 'source_kind',
+                       'published_at', 'source_url', 'quote', 'observed_at', 'body_sha256',
+                       'content_sha256', 'discovery_method')},
+                   'numeric_mention_id': row['id']}
+        by_mention[event_id] = mention
+        review = reviews.get(event_id)
+        # Historic disclosures without a source review have no body-hash baseline.
+        # Do not invent source changes or duplicate their already reviewed event.
+        if not review and event_id in linked_disclosures:
+            by_candidate.pop(event_id, None)
+            continue
+        check = review.get('source_check', {}) if review else {}
+        reviewed_hash = check.get('body_sha256')
+        reviewed_observed = check.get('observed_at')
+        known_review_hash = isinstance(reviewed_hash, str) and re.fullmatch('[0-9a-f]{64}', reviewed_hash)
+        changed = bool(known_review_hash and row['body_sha256'] != reviewed_hash and
+                       (not reviewed_observed or parse(row['observed_at']) >= parse(reviewed_observed)))
+        if review and review['decision'] in {'verified_claim', 'not_a_claim'} and not changed:
+            by_candidate.pop(event_id, None)
+            continue
+        candidate = {'id': 'candidate-' + event_id, **mention,
+                     'matched_phrase_kind': 'full_text_numeric_scan',
+                     'review_status': 'source_changed' if changed else 'unreviewed_numeric_mention'}
+        if changed:
+            candidate.update(review_reason='원문 변경으로 재확인 필요',
+                             previous_review_decision=review['decision'],
+                             reviewed_at=review['reviewed_at'],
+                             reviewed_body_sha256=reviewed_hash)
+        by_candidate[event_id] = candidate
+    order = lambda row: (row['published_at'] or '', row['event_id'])
+    return (sorted(by_mention.values(), key=order, reverse=True),
+            sorted(by_candidate.values(), key=order, reverse=True))
+
+
 def disclosure_comparisons(disclosures):
     """Compare only explicit, time-aligned reported Steam balances, never lower bounds."""
     def day(record):
@@ -275,21 +337,53 @@ def disclosure_comparisons(disclosures):
     return comparisons
 
 
-def build_index(root: Path, catalog, now, *, events=None):
+def build_index(root: Path, catalog, now, *, events=None, numeric_mentions=None):
     """Return a deterministic public index; callers own writes. No network calls."""
     now = parse(stamp(now))
-    if events is None:
-        events = []
+    if events is None or numeric_mentions is None:
+        stored_events, stored_mentions = [], []
         for game in catalog['games']:
             path = root / 'site/data/games' / (game['id'] + '.json')
             if path.exists():
-                events.extend(load_json(path).get('events', []))
+                history = load_json(path)
+                if events is None:
+                    stored_events.extend(history.get('events', []))
+                if numeric_mentions is None:
+                    rows = history.get('numeric_mentions', [])
+                    require(isinstance(rows, list), 'invalid_numeric_mentions')
+                    stored_mentions.extend(rows)
+        if events is None:
+            events = stored_events
+        if numeric_mentions is None:
+            numeric_mentions = stored_mentions
     source_path = root / 'config/wishlist-evidence.json'
     source = load_json(source_path) if source_path.exists() else {}
     normalized = normalize_source(source, catalog, now, events)
+    from source_reviews import load_reviews, load_amendments
+    reviews, latest_reviews = load_reviews(root, catalog, now, events, normalized['disclosures'])
+    amendments, active_disclosures = load_amendments(root, now, normalized['disclosures'])
     mentions = mentions_from_events(events, catalog)
-    disclosures, followers = normalized['disclosures'], normalized['follower_checks']
-    candidates = candidates_from_events(events, mentions, disclosures)
+    disclosures, followers = active_disclosures, normalized['follower_checks']
+    # Superseded originals still prove that their linked event was reviewed.
+    # Only comparisons and coverage use the active replacement disclosures.
+    reviewed_disclosures = normalized['disclosures']
+    candidates = candidates_from_events(events, mentions, reviewed_disclosures)
+    mentions, candidates = merge_numeric_mentions(
+        numeric_mentions, catalog, now, events, mentions, candidates, reviewed_disclosures, latest_reviews)
+    pending = []
+    for candidate in candidates:
+        review = latest_reviews.get(candidate['event_id'])
+        # A changed official body must survive the old review's exclusion.
+        if candidate.get('review_status') == 'source_changed':
+            pending.append(candidate)
+            continue
+        if review and review['decision'] in {'verified_claim', 'not_a_claim'}:
+            continue
+        if review:
+            candidate.update(review_status=review['decision'], review_reason=review['reason'],
+                             reviewed_at=review['reviewed_at'])
+        pending.append(candidate)
+    candidates = pending
     # Multiple immutable checks may exist. Coverage describes each game's latest check.
     latest = {}
     def check_time(row):
@@ -300,6 +394,9 @@ def build_index(root: Path, catalog, now, *, events=None):
     for row in sorted(followers, key=lambda r: (check_time(r), r['id'])):
         latest[row['game_id']] = row
     return {'schema_version': 1, 'generated_at': stamp(now), **normalized, 'mentions': mentions,
+            'candidate_reviews': reviews,
+            'disclosure_amendments': amendments,
+            'active_disclosure_ids': [d['id'] for d in disclosures],
             'candidates': candidates, 'comparisons': disclosure_comparisons(disclosures),
             'coverage': {'disclosure_games': len({r['game_id'] for r in disclosures}),
                          'disclosures': len(disclosures),
@@ -307,6 +404,10 @@ def build_index(root: Path, catalog, now, *, events=None):
                          'mentions': len(mentions),
                          'candidate_games': len({r['game_id'] for r in candidates}),
                          'candidates': len(candidates),
+                         'reviewed_candidates': len(latest_reviews),
+                         'excluded_candidates': sum(r['decision'] == 'not_a_claim' for r in latest_reviews.values()),
+                         'unresolved_candidates': sum(r['decision'] in {'needs_review', 'source_unavailable'}
+                                                      for r in latest_reviews.values()),
                          'current_stock_games': 0,
                          'followers_ok': sum(r['status'] == 'ok' for r in latest.values()),
                          'followers_conflict': sum(r['status'] == 'conflict' for r in latest.values())}}

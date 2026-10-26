@@ -1,0 +1,37 @@
+{
+  "head": "77a925b876d1a5f5b73d6af15164f771b39f2fc6",
+  "summary_generated_at": "2026-10-26T06:15:43Z",
+  "snapshot_count": 7164,
+  "coverage": {
+    "attempted_games": 7164,
+    "ok_games": 7161,
+    "developers_games": 7160,
+    "publishers_games": 7160,
+    "release_games": 7161,
+    "trailer_games": 6954,
+    "trailers": 9237,
+    "last_observed_at": "2026-10-26T06:15:43Z"
+  },
+  "coverage_equals_summary": true,
+  "validation_errors": [],
+  "source_status_counts": {
+    "ok": 7161,
+    "unavailable": 3
+  },
+  "release_field_occurrence": {
+    "is_coming_soon": 7136,
+    "custom_release_date_message": 2462,
+    "coming_soon_display": 7136,
+    "is_early_access": 735,
+    "steam_release_date": 4699,
+    "original_release_date": 13,
+    "release_from_early_access_date": 3,
+    "release_from_early_access_style": 3
+  },
+  "basic_info_without_genres_snapshots": 7164,
+  "notes": [
+    "Coverage is latest snapshot per game, not all world information.",
+    "Trailer metadata has observation times, not publication times or views.",
+    "StoreBrowse basic_info does not supply genres in observed response; no tags-to-genres conversion."
+  ]
+}

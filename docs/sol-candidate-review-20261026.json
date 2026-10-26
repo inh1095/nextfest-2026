@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "reviewer": "gpt-6.1-sol",
+  "reviewed_at": "2026-10-26T06:15:31.124784Z",
+  "scope": {
+    "review_1_candidates": 168,
+    "review_2_candidates": 167,
+    "combined_candidates": 335,
+    "production_files_modified": false,
+    "additional_network_requests": 0,
+    "review_2_semantic_contexts_read": 167
+  },
+  "inputs": [
+    {
+      "path": "/tmp/nextfest-sol-complete-20261026/review-1.json",
+      "sha256": "c566edb28db7b762f5eabe3d499d4c2ea786b1a3c9b3b917b3e7fe71312748b2"
+    },
+    {
+      "path": "/tmp/nextfest-sol-complete-20261026/review-2.json",
+      "sha256": "a2537fcc672bb53432dde4a65aff144e284fa769f8a7d436697927a0d752aaf3"
+    }
+  ],
+  "result": "passed_with_known_unconfirmed_candidates_excluded",
+  "counts": {
+    "verified_claim": 313,
+    "needs_review": 13,
+    "not_a_claim": 9
+  },
+  "disclosure_count": 313,
+  "historical_claim_count": 19,
+  "period_additions": [
+    {
+      "game_id": "steam-5032140",
+      "value": 1000,
+      "operator": "eq",
+      "quote": "in just one week we got 1.000 Wishlists!",
+      "period_text": "게임 발표 월요일부터 첫 한 주: We announced Cluttermancer on Monday and in just one week we got 1.000 Wishlists!"
+    },
+    {
+      "game_id": "steam-4664490",
+      "value": 4,
+      "operator": "eq",
+      "quote": "In the first 24 hours we hit 219 Steam impressions, 208 store visits and picked up our first 4 wishlists.",
+      "period_text": "공개 발표 후 첫 24시간"
+    },
+    {
+      "game_id": "steam-4900890",
+      "value": 10000,
+      "operator": "gt",
+      "quote": "We've gathered over 10,000 wishlists in just 5 days!",
+      "period_text": "5일 동안 모은 수치"
+    },
+    {
+      "game_id": "steam-4917610",
+      "value": 5000,
+      "operator": "gt",
+      "quote": "Since launching Nightmere's demo on Steam 11 days ago, we've amassed more than 5000 wishlists already.",
+      "period_text": "Steam 데모 공개 후 11일"
+    },
+    {
+      "game_id": "steam-4945980",
+      "value": 70,
+      "operator": "eq",
+      "quote": "The game also received its first 70 wishlists in the first week.",
+      "period_text": "첫 주에 처음 받은 수치"
+    }
+  ],
+  "validation": {
+    "wishlist_normalize_source": {
+      "passed": true,
+      "rows": 313
+    },
+    "source_reviews_load_reviews": {
+      "passed": true,
+      "rows": 335,
+      "unique_events": 335
+    },
+    "assigned_candidate_missing": 0,
+    "assigned_candidate_extra": 0,
+    "duplicate_candidate_ids": 0,
+    "duplicate_source_urls": 0,
+    "duplicate_disclosure_ids": 0,
+    "existing_138_disclosure_id_collisions": [],
+    "source_quote_budget_words": 25,
+    "draft_plus_historical_quote_budget_violations": 0,
+    "raw_source_hash_mismatches": 0,
+    "official_body_hash_mismatches": 0,
+    "unsupported_steam_scope_quotes": 0,
+    "current_stock_true": 0
+  },
+  "resolved_cross_review_findings": [
+    {
+      "review": 2,
+      "indexes": [
+        21,
+        58,
+        98,
+        119,
+        152,
+        166
+      ],
+      "issue": "동일 긴 인용을 현재수량과과거수량에반복하여출처당25단어상한초과",
+      "resolution": "담당SOL2가현재절과과거절을분리/축약. 재검사0위반. review2직접수정안함."
+    },
+    {
+      "review": 2,
+      "indexes": [
+        70
+      ],
+      "issue": "Submind300은이전공지하이퍼링크로연결된최근과거주장. 현재게시시각신규값으로오인가능",
+      "resolution": "담당SOL2가historical_claims로이동,현재draft제외,needs_review/disclosure_ids[]로수정. 독립다른날값차감없음."
+    }
+  ],
+  "full_source_only_quote_cases": [
+    {
+      "review": 1,
+      "index": 38,
+      "candidate_id": "candidate-steam-steam-3589910-1823191198602986",
+      "game_name": "Voivod: The Nuclear Warrior",
+      "source_context_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=3589910&count=5&maxlength=0&enddate=1769707050&feeds=steam_community_announcements",
+      "quote": "the game has just reached 10,000 wishlists on Steam.",
+      "event_id": null,
+      "verdict": "공식원문전체의직접수량진술확인. 저장발췌문미포함이므로event_id null과source_context_url로기존자료보존."
+    },
+    {
+      "review": 1,
+      "index": 62,
+      "candidate_id": "candidate-steam-steam-4096810-1840944183781019",
+      "game_name": "Golden Retriever Simple Life",
+      "source_context_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=4096810&count=5&maxlength=0&enddate=1786750777&feeds=steam_community_announcements",
+      "quote": "more than 5,000 people have added our game to their wishlist.",
+      "event_id": null,
+      "verdict": "공식원문전체의직접수량진술확인. 저장발췌문미포함이므로event_id null과source_context_url로기존자료보존."
+    },
+    {
+      "review": 1,
+      "index": 154,
+      "candidate_id": "candidate-steam-steam-5053270-1847286114041386",
+      "game_name": "Mithril",
+      "source_context_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=5053270&count=5&maxlength=0&enddate=1792914835&feeds=steam_community_announcements",
+      "quote": "How we have over 1000 wishlists is beyond comprehension.",
+      "event_id": null,
+      "verdict": "공식원문전체의직접수량진술확인. 저장발췌문미포함이므로event_id null과source_context_url로기존자료보존."
+    },
+    {
+      "review": 2,
+      "index": 34,
+      "candidate_id": "candidate-steam-steam-3517740-1842846814455711",
+      "game_name": "Frostrail",
+      "source_context_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=3517740&count=5&maxlength=0&enddate=1788875721&feeds=steam_community_announcements&l=english",
+      "quote": "Frostrail has now reached an incredible milestone:500,000 Wishlists!",
+      "event_id": null,
+      "verdict": "공식원문전체의직접수량진술확인. 저장발췌문미포함이므로event_id null과source_context_url로기존자료보존."
+    },
+    {
+      "review": 2,
+      "index": 103,
+      "candidate_id": "candidate-steam-steam-4555310-1842846814450513",
+      "game_name": "Fenestra: my focus, her future",
+      "source_context_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=4555310&count=5&maxlength=0&enddate=1788690906&feeds=steam_community_announcements&l=english",
+      "quote": "Fenestra has officially surpassed 10,000 wishlists on Steam!",
+      "event_id": null,
+      "verdict": "공식원문전체의직접수량진술확인. 저장발췌문미포함이므로event_id null과source_context_url로기존자료보존."
+    },
+    {
+      "review": 2,
+      "index": 160,
+      "candidate_id": "candidate-steam-steam-5126340-1843481262690516",
+      "game_name": "Runecast",
+      "source_context_url": "https://api.steampowered.com/ISteamNews/GetNewsForApp/v2/?appid=5126340&count=5&maxlength=0&enddate=1788992414&feeds=steam_community_announcements&l=english",
+      "quote": "We passed 100 wishlists this week, from ten countries.",
+      "event_id": null,
+      "verdict": "공식원문전체의직접수량진술확인. 저장발췌문미포함이므로event_id null과source_context_url로기존자료보존."
+    }
+  ],
+  "known_uncertainty_summary": {
+    "needs_review": 13,
+    "not_a_claim": 9,
+    "source_unavailable": 0,
+    "note": "목표/미달/경품/타게임/기간불명/서술충돌/수량정의불완전은확정disclosure에포함안함. 현재잔액및다른날하한차감없음."
+  },
+  "semantic_review_notes": [
+    "167개원문에서wishlist관련문단전후맥락과모든제안draft의value/operator/kind/stock_definition/platform_scope를모델이교차검토. 스크립트는본문목록화·정합성과계약검사에만사용.",
+    "Frostrail500k reached→gte, Fenestra10k surpassed→gt/Steam, Runecast100 passed→gt의공식전체원문확인. 저장500자밖인용3개event_id null확인.",
+    "BurgerSmash첫24h4획득, GrrGrrGnomes5일10k초과gathered, Nightmere데모후11일5k초과amassed, Grimoire첫주70received는기간획득명시. BookNook20k/48h는획득정의모호하여reported_count 유지.",
+    "WBS26체크표시1500보상로드맵과Cash&Stash1000은유는명시달성문장부족으로검토유지타당. 미달/기대/조건은confirmed에서제외.",
+    "BunnyGalSanta다중타이틀공지는본문타이틀과직접AppID5046600링크로대상동일성확인. 타게임규모합산하지않음."
+  ],
+  "subsequent_semantic_correction": {
+    "disclosure_id": "sol-reviewed-candidate-steam-steam-3517740-1802354289725734",
+    "field": "stock_definition",
+    "before": "lifetime_adds",
+    "after": "unspecified",
+    "basis": "Second SOL review of full official body found no lifetime additions definition."
+  }
+}
